@@ -16,14 +16,18 @@ so no OpenCode client is needed on the host.
 
 From the project directory you want the agent to work in:
 
+Podman:
+
 ```bash
-# Podman
 podman run -it --rm --userns=keep-id \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
+```
 
-# Docker (the same, without --userns=keep-id)
+Docker (the same, without `--userns=keep-id`):
+
+```bash
 docker run -it --rm \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \

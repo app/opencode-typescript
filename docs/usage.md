@@ -7,14 +7,18 @@ Running the container: the TUI, the server mode, mounts, and secrets.
 The default command is the interactive TUI inside the container. From the
 project directory:
 
+Podman:
+
 ```bash
-# Podman
 podman run -it --rm --userns=keep-id \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
+```
 
-# Docker (the same, without --userns=keep-id)
+Docker (the same, without `--userns=keep-id`):
+
+```bash
 docker run -it --rm \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
@@ -49,8 +53,16 @@ equivalent is `OPENCODE_TS_RUN_ARGS="-p 4096:4096" opencode-ts serve
 To open the [web UI](api.md#web-ui), create a pairing link from inside the
 running container:
 
+Podman:
+
 ```bash
-podman exec -it opencode opencode pair   # or: docker exec -it opencode opencode pair
+podman exec -it opencode opencode pair
+```
+
+Docker:
+
+```bash
+docker exec -it opencode opencode pair
 ```
 
 and open the printed link in a browser. The [HTTP API](api.md#http-api-agents)
@@ -109,15 +121,24 @@ shell works — append it to the run command:
 podman run -it --rm --userns=keep-id \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   ghcr.io/app/opencode-typescript:latest \
-  opencode run "Explain this repository"   # one-shot prompt, no server
-
-# a shell inside the container: replace the command with `bash`
+  opencode run "Explain this repository"
 ```
+
+That is a one-shot prompt with no server. For a shell inside the container,
+replace the command with `bash`.
 
 ## Logs
 
+Podman:
+
 ```bash
-podman logs -f opencode      # or: docker logs -f opencode
+podman logs -f opencode
+```
+
+Docker:
+
+```bash
+docker logs -f opencode
 ```
 
 In server mode, the generated server password (when `OPENCODE_PASSWORD` is

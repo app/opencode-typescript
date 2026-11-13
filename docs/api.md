@@ -23,8 +23,16 @@ the container and needs no password.
 The web UI is served by the [server mode](usage.md#start-the-server-web-ui-http-api).
 To sign in, create a pairing link from inside the running container:
 
+Podman:
+
 ```bash
-docker exec -it opencode opencode pair    # or: podman exec -it opencode opencode pair
+podman exec -it opencode opencode pair
+```
+
+Docker:
+
+```bash
+docker exec -it opencode opencode pair
 ```
 
 Open the printed link in a browser (the port must be published,
