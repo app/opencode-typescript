@@ -1,52 +1,60 @@
 # opencode-typescript
 
-A container image that runs [OpenCode](https://opencode.ai) as a server, tuned for
-TypeScript development. GitHub Actions builds and publishes it to GHCR on every push
-and on a schedule, always with the current upstream versions (rolling latest). The
-image ships a TypeScript-focused toolchain: current Node LTS via mise, TypeScript,
-the TypeScript language server, Prettier, pnpm/yarn, git and the usual agent
-tooling, and a non-root user (uid 1000) with a restricted sudo policy.
+A container image that runs [OpenCode](https://opencode.ai) for TypeScript
+development. GitHub Actions builds and publishes it to GHCR on every push and
+on a schedule, always with the current upstream versions (rolling latest). The
+image ships a TypeScript-focused toolchain: current Node LTS via mise,
+TypeScript, the TypeScript language server, Prettier, pnpm/yarn, git and the
+usual agent tooling, and a non-root user (uid 1000) with a restricted sudo
+policy.
 
-The default entrypoint starts the OpenCode server (`opencode serve` on port 4096), so
-the same image serves three kinds of users:
+The default command is the interactive TUI: running the container from a
+project directory opens a session immediately, with no OpenCode installation
+on the host. The server (`opencode serve` on port 4096) is started explicitly,
+so the same image serves three kinds of users:
 
-- a human in the TUI, connecting from the host or via a forwarded port;
-- a human in the web UI, through the pairing flow;
-- an external agent through the HTTP API (Basic auth, username `opencode`).
+- a human in the TUI — the image default;
+- a human in the web UI — server mode plus the pairing flow;
+- an external agent — server mode plus the HTTP API (Basic auth, username
+  `opencode`).
 
-Secrets (API keys, the server password, tokens) are host-side only: they are passed
-with `--env-file` or a Kubernetes Secret. The image ships a documented `env.example`
-template, and a built-in agent skill offers to copy it into the working folder when
-credentials are missing.
+Secrets (API keys, the server password, tokens) are host-side only: they are
+passed with the runtime env file or a Kubernetes Secret. The image ships a
+documented `.env.example` template, and a built-in agent skill offers to copy
+it into the working folder when credentials are missing.
 
 ## Quick start
 
 ```bash
-# 1. Create the env file from the template
-cp .env.example ~/.config/opencode-container/env
-chmod 600 ~/.config/opencode-container/env
-$EDITOR ~/.config/opencode-container/env          # set OPENROUTER_API_KEY
+# 1. Clone the repository (the launcher lives there)
+git clone https://github.com/app/opencode-typescript
+cd opencode-typescript
 
-# 2. Run the server from your project directory (rootless Podman)
-podman run -d --name opencode --userns=keep-id -p 4096:4096 \
-  -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  --env-file "$HOME/.config/opencode-container/env" \
-  ghcr.io/app/opencode-typescript:latest
+# 2. Create the env file from the template
+cp .env.example ~/.config/opencode-typescript/env
+chmod 600 ~/.config/opencode-typescript/env
+$EDITOR ~/.config/opencode-typescript/env          # set OPENROUTER_API_KEY
 
-# 3. Connect an OpenCode client (TUI) from the host
-opencode --server http://localhost:4096
+# 3. Install the launcher
+install -m755 bin/opencode-ts "$HOME/.local/bin/opencode-ts"
+
+# 4. Open the TUI from your project directory
+cd /path/to/your/project
+opencode-ts
 ```
 
-The same `docker run` works without `--userns=keep-id`. With the port forwarded,
-the web UI is available at `http://localhost:4096` (pairing flow), and agents talk to
-the HTTP API with Basic auth — see [Access](docs/api.md). Running OpenCode in
-Kubernetes: see [Kubernetes](docs/kubernetes.md).
+The launcher resolves podman/docker, mounts the project and the state volume,
+and picks up the env file; all other arguments go to opencode unchanged
+(`opencode-ts run "..."`, `opencode-ts serve ...`). In server mode, with the
+port published, the web UI is available at `http://localhost:4096`, and agents
+talk to the HTTP API with Basic auth — see [Access](docs/api.md). Running
+OpenCode in Kubernetes: see [Kubernetes](docs/kubernetes.md).
 
 ## Documentation
 
 | Document                                   | Contents                                                          |
 | ------------------------------------------ | ----------------------------------------------------------------- |
-| [Installation](docs/installation.md)       | Requirements, pulling the image, the env file setup               |
+| [Installation](docs/installation.md)       | Requirements, the launcher, pulling the image, the env file setup |
 | [Usage](docs/usage.md)                     | Running the container, mounts, passing secrets, command overrides |
 | [Access](docs/api.md)                      | TUI, web UI and the HTTP API for agents, Basic auth, OpenAPI      |
 | [Kubernetes](docs/kubernetes.md)           | Deployment, Service and Secret examples for server mode           |

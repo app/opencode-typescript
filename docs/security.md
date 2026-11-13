@@ -24,8 +24,8 @@
   variables. A `GH_TOKEN` is usable by the agent for anything that token can
   do — prefer a dedicated token with the minimum scopes.
 - The `OPENCODE_PASSWORD` (or the generated one printed to the log) protects
-  the HTTP API with Basic auth. Keep the log private when the password is
-  generated.
+  the HTTP API with Basic auth in server mode. Keep the log private when the
+  password is generated.
 - The state volume (`/home/opencode/.local`) holds provider credentials and
   the session database; treat it as sensitive.
 - Never commit a `.env` file. The `env-setup` skill keeps the agent from
@@ -33,8 +33,9 @@
 
 ## Network
 
-- The server listens on `0.0.0.0` inside the container by default. Expose
+- In server mode the server listens on `0.0.0.0` inside the container. Expose
   the port only to the networks that need it (host port, `ClusterIP` service,
-  or a `LoadBalancer` with authentication in front).
+  or a `LoadBalancer` with authentication in front). The default TUI mode does
+  not listen on any port.
 - Pairing links are single-use and expire in 5 minutes; web sessions last
   30 days and are revoked when the password changes.

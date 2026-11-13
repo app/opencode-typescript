@@ -1,7 +1,7 @@
 # Installation
 
-How to pull the image, create the runtime env file, and start the first
-server.
+How to install the launcher, pull the image, create the runtime env file, and
+open the first session.
 
 ## Requirements
 
@@ -10,7 +10,8 @@ server.
   (`subuid`/`subgid` entries in `/etc/subuid` and `/etc/subgid`).
 - An OpenRouter API key for the default model (any other provider can be
   added later in the baked config).
-- For the TUI, an [OpenCode](https://opencode.ai) client on the host.
+- Nothing else: the TUI runs inside the container, so no OpenCode client is
+  needed on the host.
 
 ## Pull the image
 
@@ -25,38 +26,52 @@ Tags: `latest`, `oc-<opencode-version>-node<node-version>` (the exact toolchain
 combination) and `<YYYYMMDD>` (build date). See
 [Updating](updating.md) for how versions are chosen.
 
+## The launcher
+
+The repository ships `bin/opencode-ts`, a thin wrapper over podman/docker: it
+resolves the engine (Podman first, override with `OPENCODE_TS_ENGINE`), mounts
+the current project and the `opencode-state` volume, finds the env file, and
+passes all remaining arguments to opencode unchanged.
+
+```bash
+git clone https://github.com/app/opencode-typescript
+install -m755 opencode-typescript/bin/opencode-ts "$HOME/.local/bin/opencode-ts"
+# make sure $HOME/.local/bin is in your PATH
+```
+
+Or just copy `bin/opencode-ts` anywhere in your PATH. Its environment
+variables: `OPENCODE_TS_ENGINE`, `OPENCODE_TS_IMAGE`, `OPENCODE_TS_ENV_FILE`,
+`OPENCODE_TS_PROJECT`, `OPENCODE_TS_STATE`, and `OPENCODE_TS_RUN_ARGS` for
+extra raw engine arguments (for example `-p 4096:4096`).
+
 ## Create the env file
 
 Copy the template from the repository (or from the image at
 `/home/opencode/.env.example`) and fill in the values:
 
 ```bash
-cp .env.example ~/.config/opencode-container/env
-chmod 600 ~/.config/opencode-container/env
-$EDITOR ~/.config/opencode-container/env
+cp .env.example ~/.config/opencode-typescript/env
+chmod 600 ~/.config/opencode-typescript/env
+$EDITOR ~/.config/opencode-typescript/env
 ```
 
-Set at least `OPENROUTER_API_KEY`. Leave `OPENCODE_PASSWORD` empty to have the
-server generate a password and print it to the container log. See
+Set at least `OPENROUTER_API_KEY`. `OPENCODE_PASSWORD` is only needed in
+server mode; leave it empty to have the server generate a password and print
+it to the container log. The launcher finds this file automatically
+(`OPENCODE_TS_ENV_FILE` → `./.env` → `~/.config/opencode-typescript/env`). See
 [Security notes](security.md) for how secrets are handled.
 
-## Start the server
+## Open the first session
 
-Run from the project directory you want the agent to work in:
+From the project directory you want the agent to work in:
 
 ```bash
-podman run -d --name opencode --userns=keep-id -p 4096:4096 \
-  -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
-  --env-file "$HOME/.config/opencode-container/env" \
-  ghcr.io/app/opencode-typescript:latest
+opencode-ts
 ```
 
-The same command works with `docker run` (drop `--userns=keep-id`). The
-`opencode-state` volume keeps credentials and the session database across
-restarts.
-
-Then connect a client: see [Access](api.md).
+The TUI opens inside the container; the project is mounted at
+`/home/opencode/projects/<name>`. To run the server instead (web UI, HTTP
+API), see [Usage](usage.md#start-the-server-web-ui-http-api).
 
 ## Uninstall
 

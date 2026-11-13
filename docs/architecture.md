@@ -7,6 +7,7 @@ Repository layout, the image, and the GitHub Actions pipeline.
 ```text
 .
 ├── AGENTS.md                         # instructions for agents working on this repository
+├── bin/opencode-ts                   # launcher: thin wrapper over podman/docker
 ├── Containerfile                     # OpenCode image + toolchain, non-root uid 1000
 ├── .env.example                      # runtime env template (copied into the image)
 ├── versions.json                     # pinned toolchain versions (updated by the bot PR)
@@ -50,9 +51,11 @@ The image bakes configuration, not secrets:
   from the environment, `gh auth setup-git` when `GH_TOKEN` is set, then
   `exec "$@"`).
 
-The default command starts the OpenCode server on `0.0.0.0:4096`; any other
-command can be passed to the container. See [Usage](usage.md) and
-[Access](api.md).
+The default command is the interactive TUI: `docker run -it ... image` opens
+a session with no OpenCode installation on the host. The server
+(`opencode serve --hostname 0.0.0.0 --port 4096`) is started explicitly —
+the k8s deployment and the CI smoke test pass it as the container command.
+See [Usage](usage.md) and [Access](api.md).
 
 ## CI pipeline
 
@@ -65,8 +68,9 @@ on demand (`workflow_dispatch`):
 2. Buildx builds `linux/amd64` and pushes to GHCR with the tags `latest`,
    `oc-<opencode>-node<node>` and `<YYYYMMDD>`. The layer cache lives in a
    separate `opencode-typescript-buildcache` GHCR repository.
-3. A smoke test starts the image, waits for `GET /api/info` with Basic auth,
-   and checks the reported version.
+3. A smoke test asserts that the image default stays the TUI, starts the
+   server explicitly, waits for `GET /api/info` with Basic auth, and checks
+   the reported version.
 4. The `update-pins` job re-resolves the versions and, when they differ from
    `versions.json` in the repository, opens a pull request updating the pins
    (`peter-evans/create-pull-request`). Merging it rebuilds and republishes

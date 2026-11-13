@@ -2,8 +2,24 @@
 
 Common errors and fixes.
 
-## The server does not respond
+## The TUI does not start or looks broken
 
+- The TUI needs an interactive terminal: run the container with `-it` (the
+  launcher always passes it). Without a TTY the TUI cannot start.
+- No colors or a garbled screen: the terminal type is not forwarded. Set
+  `TERM` on the host (the launcher passes `TERM` and `COLORTERM` through,
+  defaulting to `xterm-256color`/`truecolor`).
+- The TUI talks to the local process inside the container and needs no
+  password; if a provider error appears, check `OPENROUTER_API_KEY` (below).
+- The default command is the TUI; if the container starts a server instead, a
+  custom command was passed (for example by the k8s manifest or the smoke
+  test). Remove it.
+
+## The server does not respond (server mode)
+
+- Server mode is an explicit command: the container must be started with
+  `opencode serve --hostname 0.0.0.0 --port 4096` (the k8s manifest and the
+  CI smoke test do this; the image default is the TUI).
 - Check the container is running and the port is published:
   `podman ps` / `docker ps`, and the `-p 4096:4096` flag.
 - The server binds `0.0.0.0:4096` inside the container; without the port
@@ -13,14 +29,14 @@ Common errors and fixes.
 - In Kubernetes, the pod must be `Ready` (TCP probe) and the Service must
   select `app: opencode`; `kubectl port-forward svc/opencode 4096:4096`.
 
-## Authentication errors (HTTP 401)
+## Authentication errors (HTTP 401, server mode)
 
 - The username is always `opencode`; only the password changes.
 - When `OPENCODE_PASSWORD` is empty, the server generated a password and
   printed it to the container log on start (`podman logs opencode`,
   `kubectl logs deploy/opencode`).
-- In the TUI client, the password comes from the client process'
-  `OPENCODE_PASSWORD` variable, not from the container's.
+- Pairing links for the web UI do not use the password at all; the browser
+  session is created through the one-time link.
 
 ## No model or provider errors
 

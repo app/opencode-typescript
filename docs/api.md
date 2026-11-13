@@ -1,49 +1,46 @@
 # Access
 
-How the three kinds of users reach the agent: a human in the TUI, a human in
-the web UI, and an external agent through the HTTP API.
-
-All of them talk to the same server started by the image's default command
-(`opencode serve --hostname 0.0.0.0 --port 4096`).
-
-## Authentication
-
-The server is password-protected. Set `OPENCODE_PASSWORD` in the env file to
-use a fixed password; when it is empty, the server generates a random one and
-prints it to the container log on start.
-
-- TUI/client connections pass the password through the `OPENCODE_PASSWORD`
-  variable of the client process.
-- Other HTTP clients use Basic auth. The username is always `opencode`, and
-  only the password can be changed.
+How the three kinds of users reach the agent. OpenCode lives only inside the
+container; nothing is installed on the host.
 
 ## TUI
 
-Run an OpenCode client from the host (or any machine) pointed at the server:
+The image default. From the project directory:
 
 ```bash
-OPENCODE_PASSWORD="a-long-secret" opencode --server http://localhost:4096
+opencode-ts          # the launcher
+# or: docker run -it --rm ... ghcr.io/app/opencode-typescript:latest
 ```
 
-With the port forwarded (`-p 4096:4096`), the server address is
-`http://localhost:4096`.
+See [Usage](usage.md#open-the-tui-default) for the mount layout. The TUI talks
+to the local process and needs no password.
 
 ## Web UI
 
-The web UI is served from the same server. To sign in, create a pairing link
-with the `opencode` CLI connected to the server:
+The web UI is served by the [server mode](usage.md#start-the-server-web-ui-http-api).
+To sign in, create a pairing link from inside the running container:
 
 ```bash
-OPENCODE_PASSWORD="a-long-secret" opencode --server http://localhost:4096 pair
+docker exec -it opencode opencode pair    # or: podman exec -it opencode opencode pair
 ```
 
-Open the printed link in a browser. Links work once and expire in 5 minutes;
-sessions last 30 days. Changing the server password signs every session out.
-Over SSH, forward the server port and open the link locally.
+Open the printed link in a browser (the port must be published,
+`-p 4096:4096`). Links work once and expire in 5 minutes; sessions last
+30 days. Changing the server password signs every session out. Over SSH,
+forward the server port and open the link locally.
+
+## Authentication
+
+Server mode is password-protected. Set `OPENCODE_PASSWORD` in the env file to
+use a fixed password; when it is empty, the server generates a random one and
+prints it to the container log on start. HTTP clients use Basic auth: the
+username is always `opencode`, and only the password can be changed.
 
 ## HTTP API (agents)
 
-An external agent creates a session and sends prompts through the REST API:
+Start the server explicitly (see
+[Usage](usage.md#start-the-server-web-ui-http-api)), then an external agent
+creates a session and sends prompts through the REST API:
 
 ```bash
 BASE=http://localhost:4096
