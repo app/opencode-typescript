@@ -37,6 +37,9 @@ spec:
       containers:
         - name: opencode
           image: ghcr.io/app/opencode-typescript:latest
+          # The image default is the interactive TUI; the deployment runs the
+          # server explicitly for the HTTP API.
+          args: ["opencode", "serve", "--hostname", "0.0.0.0", "--port", "4096"]
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

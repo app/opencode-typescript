@@ -61,7 +61,14 @@ jobs:
         run: |
           set -euo pipefail
           IMAGE="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${IMAGE_NAME}:oc-${{ steps.versions.outputs.opencode }}-node${{ steps.versions.outputs.node }}"
-          docker run -d --name opencode-smoke -e OPENCODE_PASSWORD="$SMOKE_PASSWORD" "$IMAGE"
+          # Guard: the image must default to the interactive TUI, not the server.
+          IMAGE_CMD="$(docker inspect --format '{{join .Config.Cmd " "}}' "$IMAGE")"
+          if [[ "$IMAGE_CMD" != "opencode" ]]; then
+            echo "Unexpected image default CMD: $IMAGE_CMD" >&2
+            exit 1
+          fi
+          # The server mode is started explicitly.
+          docker run -d --name opencode-smoke -e OPENCODE_PASSWORD="$SMOKE_PASSWORD" "$IMAGE" opencode serve --hostname 0.0.0.0 --port 4096
           trap 'docker rm -f opencode-smoke >/dev/null' EXIT
           up=""
           for _ in $(seq 1 30); do

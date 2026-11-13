@@ -130,9 +130,12 @@ RUN chmod 0755 /usr/local/bin/entrypoint.sh
 USER ${UID}:${GID}
 WORKDIR /home/opencode/projects
 
-# The default command starts the OpenCode server for TUI, web UI and API
-# clients. Pass any other command to run it instead, for example
+# The default command is the interactive TUI, so a plain
+# `docker run -it ... image` opens a session with no OpenCode installation
+# on the host. Run the server explicitly for the web UI and the HTTP API:
+# `docker run ... image opencode serve --hostname 0.0.0.0 --port 4096`.
+# Any other command works too, for example
 # `docker run ... image opencode run "Explain this repository"`.
 EXPOSE 4096
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["opencode", "serve", "--hostname", "0.0.0.0", "--port", "4096"]
+CMD ["opencode"]
