@@ -1,0 +1,5 @@
+.env
+.cache/
+tmp/
+.opencode/usage/
+node_modules/
