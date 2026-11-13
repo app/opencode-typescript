@@ -14,6 +14,7 @@ FROM ghcr.io/anomalyco/opencode:${OPENCODE_VERSION}
 
 ARG UID=1000
 ARG GID=1000
+ARG OPENCODE_VERSION
 ARG NODE_VERSION
 
 # Recorded in the image for `docker image inspect` and troubleshooting.
@@ -108,10 +109,12 @@ RUN if [ "$(apk --print-arch)" = "x86_64" ]; then \
  && MISE_CACHE_DIR=/tmp/mise-cache MISE_NODE_MIRROR_URL="$MIRROR" mise install node@${NODE_VERSION} \
  && rm -rf /tmp/mise-cache
 
-# TypeScript tooling at the versions published on build day.
+# TypeScript tooling at the versions published on build day. Node 25 and
+# newer no longer ship corepack, so install it from npm; it provides the
+# pnpm and yarn shims that honor "packageManager" in package.json.
 RUN echo "Installing TypeScript tooling..." \
+ && mise exec node -- npm install -g corepack typescript typescript-language-server prettier \
  && mise exec node -- corepack enable \
- && mise exec node -- npm install -g typescript typescript-language-server prettier \
  && mise reshim \
  && rm -rf /home/opencode/.npm
 

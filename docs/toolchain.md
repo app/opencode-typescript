@@ -35,7 +35,8 @@ project are honored automatically. A version that is not installed yet is
 downloaded on demand; on x86_64 the pinned version comes from the official
 musl builds at nodejs.org, and other versions and architectures use
 `unofficial-builds.nodejs.org` (slow). `pnpm` and `yarn` go through Corepack
-and follow `packageManager` in `package.json`.
+(installed from npm, since Node 25 no longer ships it) and follow
+`packageManager` in `package.json`.
 
 ## TypeScript
 
