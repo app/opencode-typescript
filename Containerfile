@@ -16,6 +16,10 @@ ARG UID=1000
 ARG GID=1000
 ARG NODE_VERSION
 
+# Recorded in the image for `docker image inspect` and troubleshooting.
+LABEL org.opencode-typescript.opencode="${OPENCODE_VERSION}" \
+      org.opencode-typescript.node="${NODE_VERSION}"
+
 # Toolchain for a TypeScript developer: GNU userland, git and the GitHub
 # CLI, search tools, JSON/YAML, a minimal Python, and the native build tools
 # needed by node-gyp. bash must come before mise: its npm wrapper needs it.
