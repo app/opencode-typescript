@@ -6,6 +6,7 @@ Repository layout, the image, and the GitHub Actions pipeline.
 
 ```text
 .
+├── AGENTS.md                         # instructions for agents working on this repository
 ├── Containerfile                     # OpenCode image + toolchain, non-root uid 1000
 ├── .env.example                      # runtime env template (copied into the image)
 ├── versions.json                     # pinned toolchain versions (updated by the bot PR)
