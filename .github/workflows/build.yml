@@ -1,0 +1,127 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * *"
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: opencode-typescript
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve current versions
+        id: versions
+        run: |
+          bash scripts/resolve-versions.sh >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          build-args: |
+            OPENCODE_VERSION=${{ steps.versions.outputs.opencode }}
+            NODE_VERSION=${{ steps.versions.outputs.node }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:oc-${{ steps.versions.outputs.opencode }}-node${{ steps.versions.outputs.node }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.versions.outputs.date }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-buildcache:build
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-buildcache:build,mode=max
+
+      - name: Smoke test
+        env:
+          SMOKE_PASSWORD: smoke-test-password
+        run: |
+          set -euo pipefail
+          IMAGE="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${IMAGE_NAME}:oc-${{ steps.versions.outputs.opencode }}-node${{ steps.versions.outputs.node }}"
+          docker run -d --name opencode-smoke -e OPENCODE_PASSWORD="$SMOKE_PASSWORD" "$IMAGE"
+          trap 'docker rm -f opencode-smoke >/dev/null' EXIT
+          up=""
+          for _ in $(seq 1 30); do
+            if docker exec opencode-smoke curl -fsS -u "opencode:$SMOKE_PASSWORD" http://localhost:4096/api/info >/dev/null 2>&1; then
+              up="yes"
+              break
+            fi
+            sleep 2
+          done
+          [[ "$up" == "yes" ]] || { echo "The server did not come up." >&2; exit 1; }
+          INFO="$(docker exec opencode-smoke curl -fsS -u "opencode:$SMOKE_PASSWORD" http://localhost:4096/api/info)"
+          echo "$INFO"
+          # Best effort: verify the server reports the version we built.
+          VERSION="$(jq -r '.version // empty' <<<"$INFO")"
+          if [[ -n "$VERSION" && "$VERSION" != "${{ steps.versions.outputs.opencode }}" ]]; then
+            echo "Server version mismatch: expected ${{ steps.versions.outputs.opencode }}, got $VERSION." >&2
+            exit 1
+          fi
+
+  update-pins:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve current versions
+        id: versions
+        run: bash scripts/resolve-versions.sh >> "$GITHUB_OUTPUT"
+
+      - name: Compare with versions.json
+        id: diff
+        run: |
+          set -euo pipefail
+          CURRENT="$(jq -cS . versions.json)"
+          NEW="$(jq -cnS --arg oc "${{ steps.versions.outputs.opencode }}" \
+            --arg node "${{ steps.versions.outputs.node }}" \
+            '{opencode: $oc, node: $node}')"
+          if [[ "$CURRENT" == "$NEW" ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write updated versions.json
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          jq -cnS --arg oc "${{ steps.versions.outputs.opencode }}" \
+            --arg node "${{ steps.versions.outputs.node }}" \
+            '{opencode: $oc, node: $node}' > versions.json
+
+      - name: Create pull request with updated pins
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/update-pinned-versions
+          base: main
+          title: "chore: update pinned toolchain versions to OpenCode ${{ steps.versions.outputs.opencode }} and Node ${{ steps.versions.outputs.node }}"
+          commit-message: "chore: update pinned toolchain versions"
+          body: |
+            The build workflow resolved newer upstream versions than the pins
+            recorded in `versions.json`. Merging this pull request rebuilds and
+            republishes the image with the new versions.
