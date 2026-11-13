@@ -8,12 +8,15 @@ container; nothing is installed on the host.
 The image default. From the project directory:
 
 ```bash
-opencode-ts          # the launcher
-# or: docker run -it --rm ... ghcr.io/app/opencode-typescript:latest
+podman run -it --rm --userns=keep-id \
+  -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
+  -v opencode-state:/home/opencode/.local \
+  ghcr.io/app/opencode-typescript:latest
 ```
 
-See [Usage](usage.md#open-the-tui-default) for the mount layout. The TUI talks
-to the local process and needs no password.
+See [Usage](usage.md#open-the-tui-default) for the mount layout (Docker: the
+same without `--userns=keep-id`). The TUI talks to the local process inside
+the container and needs no password.
 
 ## Web UI
 

@@ -25,36 +25,36 @@ it into the working folder when credentials are missing.
 
 ## Quick start
 
+Nothing to install: run the container from the project directory you want the
+agent to work in. The default command is the interactive TUI, and the image is
+pulled automatically on the first run:
+
 ```bash
-# 1. Clone the repository (the launcher lives there)
-git clone https://github.com/app/opencode-typescript
-cd opencode-typescript
+# Podman
+podman run -it --rm --userns=keep-id \
+  -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
+  -v opencode-state:/home/opencode/.local \
+  ghcr.io/app/opencode-typescript:latest
 
-# 2. Create the env file from the template
-cp .env.example ~/.config/opencode-typescript/env
-chmod 600 ~/.config/opencode-typescript/env
-$EDITOR ~/.config/opencode-typescript/env          # set OPENROUTER_API_KEY
-
-# 3. Install the launcher
-install -m755 bin/opencode-ts "$HOME/.local/bin/opencode-ts"
-
-# 4. Open the TUI from your project directory
-cd /path/to/your/project
-opencode-ts
+# Docker (the same, without --userns=keep-id)
+docker run -it --rm \
+  -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
+  -v opencode-state:/home/opencode/.local \
+  ghcr.io/app/opencode-typescript:latest
 ```
 
-The launcher resolves podman/docker, mounts the project and the state volume,
-and picks up the env file; all other arguments go to opencode unchanged
-(`opencode-ts run "..."`, `opencode-ts serve ...`). In server mode, with the
-port published, the web UI is available at `http://localhost:4096`, and agents
-talk to the HTTP API with Basic auth — see [Access](docs/api.md). Running
-OpenCode in Kubernetes: see [Kubernetes](docs/kubernetes.md).
+On the first run the agent offers to set up the OpenRouter API key: it writes
+a `.env` file into your project directory, you fill in the key, and the next
+run adds `--env-file .env` to the command. In server mode (web UI, HTTP API),
+pass `opencode serve --hostname 0.0.0.0 --port 4096` as the container command
+— see [Usage](docs/usage.md). Running OpenCode in Kubernetes: see
+[Kubernetes](docs/kubernetes.md).
 
 ## Documentation
 
 | Document                                   | Contents                                                          |
 | ------------------------------------------ | ----------------------------------------------------------------- |
-| [Installation](docs/installation.md)       | Requirements, the launcher, pulling the image, the env file setup |
+| [Installation](docs/installation.md)       | Requirements, the first run, the API key, the optional launcher   |
 | [Usage](docs/usage.md)                     | Running the container, mounts, passing secrets, command overrides |
 | [Access](docs/api.md)                      | TUI, web UI and the HTTP API for agents, Basic auth, OpenAPI      |
 | [Kubernetes](docs/kubernetes.md)           | Deployment, Service and Secret examples for server mode           |

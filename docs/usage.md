@@ -4,45 +4,47 @@ Running the container: the TUI, the server mode, mounts, and secrets.
 
 ## Open the TUI (default)
 
-The default command is the interactive TUI inside the container. With the
-[launcher](installation.md#the-launcher), run it from the project directory:
+The default command is the interactive TUI inside the container. From the
+project directory:
 
 ```bash
-opencode-ts
-```
-
-Or with a plain engine command (Podman shown; Docker is the same without
-`--userns=keep-id`):
-
-```bash
+# Podman
 podman run -it --rm --userns=keep-id \
-  --name "opencode-$(basename "$PWD")" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
-  --env-file "$HOME/.config/opencode-typescript/env" \
+  ghcr.io/app/opencode-typescript:latest
+
+# Docker (the same, without --userns=keep-id)
+docker run -it --rm \
+  -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
+  -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
 No server, no published port, and nothing installed on the host. The project
 directory is mounted read-write at `/home/opencode/projects/<name>` and is
-the working directory.
+the working directory. Once a `.env` file exists (see
+[Installation](installation.md#provide-the-api-key)), add `--env-file .env`
+to the command. The optional [launcher](installation.md#the-launcher-optional)
+wraps exactly this.
 
 ## Start the server (web UI, HTTP API)
 
 Server mode is an explicit command on top of the same image:
 
 ```bash
-# via the launcher (foreground; publishes the port through OPENCODE_TS_RUN_ARGS)
-OPENCODE_TS_RUN_ARGS="-p 4096:4096" opencode-ts serve --hostname 0.0.0.0 --port 4096
-
-# or a plain detached run
 podman run -d --name opencode --userns=keep-id -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
-  --env-file "$HOME/.config/opencode-typescript/env" \
+  --env-file .env \
   ghcr.io/app/opencode-typescript:latest \
   opencode serve --hostname 0.0.0.0 --port 4096
 ```
+
+The same works with Docker (without `--userns=keep-id`); drop `-d` and add
+`-it` for a foreground run. The [launcher](installation.md#the-launcher-optional)
+equivalent is `OPENCODE_TS_RUN_ARGS="-p 4096:4096" opencode-ts serve
+--hostname 0.0.0.0 --port 4096`.
 
 To open the [web UI](api.md#web-ui), create a pairing link from inside the
 running container:
@@ -64,10 +66,11 @@ is available under Basic auth on the same port.
 - Use `--userns=keep-id` with Podman so files created in the project keep your
   host ownership. With Docker, match the container user to your host UID if
   ownership matters: `--user "$(id -u):$(id -g)"` (the image runs as 1000 by
-  default). The launcher does both automatically where the engine supports it.
-- Mount sibling projects read-only with the launcher's `-r` flag
-  (`opencode-ts -r ../frontend`) or extra `-v` mounts under
-  `/home/opencode/projects/`.
+  default).
+- Mount sibling projects read-only with extra `-v` mounts under
+  `/home/opencode/projects/`, for example
+  `-v ../frontend:/home/opencode/projects/frontend:ro` (the launcher's
+  `-r` flag wraps this).
 - For Kubernetes, see [Kubernetes](kubernetes.md) instead.
 
 ## Passing secrets
@@ -79,11 +82,11 @@ Secrets are never baked into the image; they are passed at runtime:
 -e OPENROUTER_API_KEY=...         # or individual variables
 ```
 
-The launcher finds the env file on its own: `OPENCODE_TS_ENV_FILE`, then
-`./.env` in the project directory, then
-`~/.config/opencode-typescript/env`. The template documenting every variable
-lives in the repository root (`.env.example`) and inside the image at
-`/home/opencode/.env.example`. Variable reference:
+By convention the file lives in the project directory (`.env`); the optional
+[launcher](installation.md#the-launcher-optional) finds it on its own. The
+template documenting every variable lives in the repository root
+(`.env.example`) and inside the image at `/home/opencode/.env.example`.
+Variable reference:
 
 | Variable                                     | Required            | Purpose                                                              |
 | -------------------------------------------- | ------------------- | -------------------------------------------------------------------- |
@@ -100,11 +103,15 @@ or print secrets; see [Security notes](security.md).
 ## Other commands
 
 The entrypoint execs the command you pass, so any other opencode command or a
-shell works:
+shell works — append it to the run command:
 
 ```bash
-opencode-ts run "Explain this repository"      # one-shot prompt, no server
-opencode-ts bash                                # a shell inside the container
+podman run -it --rm --userns=keep-id \
+  -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
+  ghcr.io/app/opencode-typescript:latest \
+  opencode run "Explain this repository"   # one-shot prompt, no server
+
+# a shell inside the container: replace the command with `bash`
 ```
 
 ## Logs

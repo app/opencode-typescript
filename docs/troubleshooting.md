@@ -4,11 +4,11 @@ Common errors and fixes.
 
 ## The TUI does not start or looks broken
 
-- The TUI needs an interactive terminal: run the container with `-it` (the
-  launcher always passes it). Without a TTY the TUI cannot start.
-- No colors or a garbled screen: the terminal type is not forwarded. Set
-  `TERM` on the host (the launcher passes `TERM` and `COLORTERM` through,
-  defaulting to `xterm-256color`/`truecolor`).
+- The TUI needs an interactive terminal: run the container with `-it`.
+  Without a TTY the TUI cannot start.
+- No colors or a garbled screen: `TERM` is inherited from the calling
+  environment, so make sure it is set on the host (for example
+  `xterm-256color`).
 - The TUI talks to the local process inside the container and needs no
   password; if a provider error appears, check `OPENROUTER_API_KEY` (below).
 - The default command is the TUI; if the container starts a server instead, a
