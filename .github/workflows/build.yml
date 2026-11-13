@@ -61,6 +61,9 @@ jobs:
         run: |
           set -euo pipefail
           IMAGE="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${IMAGE_NAME}:oc-${{ steps.versions.outputs.opencode }}-node${{ steps.versions.outputs.node }}"
+          # buildx pushes the image but does not load it into the local
+          # daemon; pull it first.
+          docker pull "$IMAGE"
           # Guard: the image must default to the interactive TUI, not the server.
           IMAGE_CMD="$(docker inspect --format '{{join .Config.Cmd " "}}' "$IMAGE")"
           if [[ "$IMAGE_CMD" != "opencode" ]]; then
