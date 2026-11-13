@@ -42,6 +42,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Containerfile
           platforms: linux/amd64
           build-args: |
             OPENCODE_VERSION=${{ steps.versions.outputs.opencode }}
