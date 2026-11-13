@@ -72,16 +72,17 @@ account or key, and the session starts on one of them.
 
 When the session runs on a free built-in model, mention it once at the start
 of the conversation (in the user's language, one or two sentences): the
-session runs on a free model that ships with OpenCode; to work with other
-models, connect OpenRouter and pick a model in the TUI's model picker. Show
-the two ways to connect:
+session runs on a free model that ships with OpenCode, and for other models
+the user can connect a provider with the TUI's `/connect` command and then
+pick a model in the model picker. The TUI's sidebar already shows the
+`/connect` hint, so keep the mention brief.
 
-- From the host, one-time: run `opencode auth login openrouter` with this
-  image and the `opencode-state` volume (the stored account wins over the
-  environment variable).
-- Environment file: copy the template `/home/opencode/.env.example` to `.env`
-  next to the project, fill in `OPENROUTER_API_KEY`, and add `--env-file .env`
-  to the run command.
+If the user asks about an environment file instead, offer to create a `.env`
+file in the project folder yourself: copy the template
+`/home/opencode/.env.example` to `.env` in the working directory (the project
+is mounted, so the file lands on the host), and tell the user to fill in
+`OPENROUTER_API_KEY` and add `--env-file .env` to the run command (the
+optional launcher finds the file on its own).
 
 Offer it once; do not repeat it unless the user asks, and do not push it if
 the user is content with the built-in model.
@@ -90,7 +91,8 @@ the user is content with the built-in model.
 
 Secrets (provider API keys, the server password, forge tokens) are passed at
 runtime through the environment, or stored once by the user with
-`opencode auth login` (a stored account wins over the matching environment
+`opencode auth login` or the TUI's `/connect` command (a stored account wins
+over the matching environment
 variable, for example over `OPENROUTER_API_KEY`). The runtime env template is
 baked into the image at `/home/opencode/.env.example`. When a required
 variable is missing or empty, use the `env-setup` skill to offer the user a
