@@ -64,6 +64,28 @@ container. Never run `opencode upgrade` or edit the installed binary. Updates
 are published by the GitHub Actions workflow, so ask the user to pull a newer
 image when a newer OpenCode is needed.
 
+## Models
+
+No model is pinned in the baked config. Until the user connects a provider,
+OpenCode serves its free built-in models (provider `opencode`) with no
+account or key, and the session starts on one of them.
+
+When the session runs on a free built-in model, mention it once at the start
+of the conversation (in the user's language, one or two sentences): the
+session runs on a free model that ships with OpenCode; to work with other
+models, connect OpenRouter and pick a model in the TUI's model picker. Show
+the two ways to connect:
+
+- From the host, one-time: run `opencode auth login openrouter` with this
+  image and the `opencode-state` volume (the stored account wins over the
+  environment variable).
+- Environment file: copy the template `/home/opencode/.env.example` to `.env`
+  next to the project, fill in `OPENROUTER_API_KEY`, and add `--env-file .env`
+  to the run command.
+
+Offer it once; do not repeat it unless the user asks, and do not push it if
+the user is content with the built-in model.
+
 ## Secrets
 
 Secrets (provider API keys, the server password, forge tokens) are passed at

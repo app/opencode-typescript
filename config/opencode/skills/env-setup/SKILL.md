@@ -14,13 +14,15 @@ The image ships a documented runtime env template at
 `/home/opencode/.env.example`. Values are passed at runtime only (`--env-file`
 or a Kubernetes Secret) and are never baked into the image.
 
-By the time the agent can answer, the OpenRouter key for the default model is
-usually already present: in the environment, or as a stored account from
-`opencode auth login openrouter`. If the OpenRouter key itself is missing or
-invalid, copying the template does not fix it: tell the user to run
-`opencode auth login openrouter` from the host (the key is stored on the
-`opencode-state` volume) or to update `OPENROUTER_API_KEY` and restart. Use
-this skill for the remaining variables.
+No key is required for the free built-in models: until the user connects a
+provider, the session runs on OpenCode's free models (provider `opencode`).
+The OpenRouter key is only needed for OpenRouter models; it arrives either in
+the environment (`OPENROUTER_API_KEY`) or as a stored account from
+`opencode auth login openrouter`. If the user wants OpenRouter models and the
+key is missing or invalid, copying the template does not fix it: tell the
+user to run `opencode auth login openrouter` from the host (the key is stored
+on the `opencode-state` volume) or to set `OPENROUTER_API_KEY` in the env
+file and restart. Use this skill for the remaining variables.
 
 ## Check
 
@@ -60,7 +62,7 @@ env | grep -E '^(OPENROUTER_API_KEY|OPENCODE_PASSWORD|GH_TOKEN|GITLAB_TOKEN|FORG
 
 | Variable                                     | Purpose                                                                                                                                  |
 | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `OPENROUTER_API_KEY`                         | API key for the default provider. Required for the default model unless a stored account exists.                                         |
+| `OPENROUTER_API_KEY`                         | API key for OpenRouter models. Optional: the free built-in models work without it; the stored account wins over this variable.           |
 | `OPENCODE_PASSWORD`                          | Password for the OpenCode server (HTTP API). Optional: when empty, the server generates one and prints it to the container log on start. |
 | `GH_TOKEN`                                   | GitHub token for git over HTTPS and the `gh` CLI. Optional.                                                                              |
 | `GITLAB_TOKEN`                               | GitLab token for git over HTTPS, the `glab` CLI and API calls. Optional.                                                                 |
