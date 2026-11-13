@@ -32,20 +32,30 @@ alternatives.
 - TypeScript: `tsc`, the TypeScript language server and `prettier` are
   installed globally for Node; format changed Markdown with
   `prettier --write --prose-wrap preserve --embedded-language-formatting off`.
-- Forge: `gh` for GitHub (issues, pull requests, releases).
+- Forge: `gh` for GitHub, `glab` for GitLab (issues, MRs, pipelines,
+  releases); Forgejo through the REST API.
 - Shell scripts: `shellcheck`, `shfmt`.
 - Native builds: `gcc`/`g++`, `make`, Linux headers and the Node headers
   needed by `node-gyp` are available.
 
-## Git and GitHub
+## Git and forges
 
 - Commits use `GIT_AUTHOR_*` and `GIT_COMMITTER_*` when they are set. Do not
   change the git identity in the repository or in the global config.
-- Git over HTTPS uses the `gh` credential helper, which the entrypoint
-  configures from `GH_TOKEN` when the token is provided.
-- Use `gh` for issues, pull requests and releases; it reads `GH_TOKEN` from
-  the environment.
-- Never print, log or commit `GH_TOKEN` or other credentials.
+- GitHub: git over HTTPS uses the `gh` credential helper, which the
+  entrypoint configures from `GH_TOKEN`. Use `gh` for issues, pull requests
+  and releases; it reads `GH_TOKEN` from the environment.
+- GitLab (optional): when `GITLAB_TOKEN` is set, git over HTTPS to the
+  GitLab host (`GITLAB_URL`, default `https://gitlab.com`) is preconfigured
+  by the entrypoint. Use `glab` for issues, MRs, pipelines and releases (it
+  reads `GITLAB_TOKEN`; pass `--hostname` for self-hosted instances) or the
+  REST API with the `PRIVATE-TOKEN` header.
+- Forgejo (optional): when `FORGEJO_TOKEN` and `FORGEJO_URL` are set, git
+  over HTTPS/HTTP to that instance is preconfigured by the entrypoint. Use
+  the REST API (`<FORGEJO_URL>/api/v1/...`) with the `Authorization: token`
+  header.
+- Never print, log or commit `GH_TOKEN`, `GITLAB_TOKEN`, `FORGEJO_TOKEN` or
+  other credentials.
 
 ## Container updates
 

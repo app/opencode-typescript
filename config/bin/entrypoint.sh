@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Container entrypoint: prepares the runtime for OpenCode, then execs the
-# requested command (default: the OpenCode server on 0.0.0.0:4096).
+# requested command (default: the interactive TUI).
 #
 # Secrets are passed in through the environment (--env-file or a Kubernetes
 # Secret). This script never reads or writes a .env file; the runtime env
@@ -21,6 +21,27 @@ export GIT_COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-agent@localhost}"
 # gh itself reads GH_TOKEN from the environment.
 if [[ -n "${GH_TOKEN:-}" ]]; then
   gh auth setup-git
+fi
+
+# GitLab and Forgejo: optional forge tokens. When provided, each token is
+# stored as a git credential for its host (the scheme is taken from the
+# instance URL), so git over HTTPS/HTTP works without a password prompt.
+# GITLAB_TOKEN defaults to gitlab.com; FORGEJO_TOKEN is only used together
+# with FORGEJO_URL.
+if [[ -n "${GITLAB_TOKEN:-}" || -n "${FORGEJO_TOKEN:-}${FORGEJO_URL:-}" ]]; then
+  {
+    if [[ -n "${GITLAB_TOKEN:-}" ]]; then
+      url="${GITLAB_URL:-https://gitlab.com}"
+      rest="${url#*://}"
+      printf '%s://oauth2:%s@%s\n' "${url%%://*}" "$GITLAB_TOKEN" "${rest%%/*}"
+    fi
+    if [[ -n "${FORGEJO_TOKEN:-}" && -n "${FORGEJO_URL:-}" ]]; then
+      rest="${FORGEJO_URL#*://}"
+      printf '%s://git:%s@%s\n' "${FORGEJO_URL%%://*}" "$FORGEJO_TOKEN" "${rest%%/*}"
+    fi
+  } >"${HOME}/.git-credentials"
+  chmod 600 "${HOME}/.git-credentials"
+  git config --global credential.helper store
 fi
 
 exec "$@"

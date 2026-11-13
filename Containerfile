@@ -57,6 +57,7 @@ RUN echo "Installing Alpine packages..." \
       openssl-dev \
       mise \
       github-cli \
+      glab \
       shellcheck \
       shfmt \
       sudo \
