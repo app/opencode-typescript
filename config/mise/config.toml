@@ -1,0 +1,17 @@
+[settings]
+all_compile = false
+idiomatic_version_file_enable_tools = ["node"]
+
+# unofficial-builds.nodejs.org is slow: allow long downloads and retries for
+# on-demand version installs at runtime.
+http_timeout = "300s"
+http_retries = 5
+
+[settings.node]
+# Alpine is musl-only: prebuilt musl binaries, no source builds. The pinned
+# Node LTS is installed at image build time (see Containerfile); this mirror
+# serves versions requested later through .nvmrc, .node-version,
+# .tool-versions or mise.toml in the mounted project.
+compile = false
+flavor = "musl"
+mirror_url = "https://unofficial-builds.nodejs.org/download/release/"

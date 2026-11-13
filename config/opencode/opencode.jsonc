@@ -1,0 +1,54 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // The binary is baked into the image and cannot update itself here.
+  // Updates ship with a rebuilt image; see docs/updating.md.
+  "update": "disable",
+  // Default model: a fast, cheap model with tool calling. Switch models in
+  // the TUI or through the API when a different one is needed.
+  "model": "openrouter/deepseek/deepseek-v4-flash-0731",
+  "providers": {
+    "openrouter": {
+      "name": "OpenRouter",
+      "package": "aisdk:@openrouter/ai-sdk-provider",
+      "settings": {
+        // Substituted at runtime from the environment. Never put a literal
+        // key here: secrets live only on the host.
+        "apiKey": "{env:OPENROUTER_API_KEY}",
+        "baseURL": "https://openrouter.ai/api/v1"
+      },
+      "models": {
+        "deepseek/deepseek-v4-flash-0731": {
+          "name": "DeepSeek V4 Flash 0731",
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          },
+          "capabilities": {
+            "tools": true,
+            "reasoning": {
+              "supported": true
+            },
+            "input": ["text", "image"],
+            "output": ["text"]
+          }
+        }
+      }
+    }
+  },
+  // Autonomous operation: the agent works without a human answering
+  // permission prompts. The built-in base policy already allows everything;
+  // these rules make the intent explicit and pin it against future default
+  // changes. V2 action names: shell (not bash), edit, webfetch.
+  "permissions": [
+    { "action": "edit", "resource": "*", "effect": "allow" },
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    { "action": "webfetch", "resource": "*", "effect": "allow" }
+  ],
+  // TypeScript language server for the mounted project.
+  "lsp": {
+    "typescript": {
+      "command": ["typescript-language-server", "--stdio"],
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"]
+    }
+  }
+}

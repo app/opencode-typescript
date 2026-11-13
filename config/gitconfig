@@ -1,0 +1,17 @@
+[init]
+  defaultBranch = main
+[user]
+  # Generic identity for a public image. The entrypoint overrides these with
+  # the GIT_AUTHOR_* and GIT_COMMITTER_* environment variables when they are
+  # set.
+  name = opencode-agent
+  email = agent@localhost
+[core]
+  quotepath = false
+[color]
+  ui = true
+  status = auto
+[log]
+  abbrevCommit = true
+[push]
+  default = matching
