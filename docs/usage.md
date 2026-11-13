@@ -26,8 +26,9 @@ docker run -it --rm \
 ```
 
 No server, no published port, and nothing installed on the host. The project
-directory is mounted read-write at `/home/opencode/projects/<name>` and is
-the working directory. If you have a `.env` file (see
+directory is mounted read-write at `/home/opencode/projects/<name>`; when it
+is the only project mount, OpenCode starts inside it, so the TUI opens your
+project directly. If you have a `.env` file (see
 [More models](installation.md#more-models-optional)), add `--env-file .env`
 to the command. The optional [launcher](installation.md#the-launcher-optional)
 wraps exactly this.
@@ -70,10 +71,10 @@ is available under Basic auth on the same port.
 
 ## Mounts
 
-| Host path               | Container path                   | Purpose                              |
-| ----------------------- | -------------------------------- | ------------------------------------ |
-| your project directory  | `/home/opencode/projects/<name>` | the agent's working project          |
-| `opencode-state` volume | `/home/opencode/.local`          | credentials and the session database |
+| Host path               | Container path                   | Purpose                                                                          |
+| ----------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
+| your project directory  | `/home/opencode/projects/<name>` | the agent's working project; OpenCode starts inside it when it is the only mount |
+| `opencode-state` volume | `/home/opencode/.local`          | credentials and the session database                                             |
 
 - Use `--userns=keep-id` with Podman so files created in the project keep your
   host ownership. With Docker, match the container user to your host UID if
@@ -82,7 +83,9 @@ is available under Basic auth on the same port.
 - Mount sibling projects read-only with extra `-v` mounts under
   `/home/opencode/projects/`, for example
   `-v ../frontend:/home/opencode/projects/frontend:ro` (the launcher's
-  `-r` flag wraps this).
+  `-r` flag wraps this). With several project mounts, OpenCode starts at
+  the projects root; open a specific one by appending its directory to the
+  run command: `opencode /home/opencode/projects/frontend`.
 - For Kubernetes, see [Kubernetes](kubernetes.md) instead.
 
 ## Passing secrets

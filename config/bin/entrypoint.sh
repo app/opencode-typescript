@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# Container entrypoint: prepares the runtime for OpenCode, then execs the
-# requested command (default: the interactive TUI).
+# Container entrypoint: prepares the runtime for OpenCode, starts in the
+# mounted project when there is exactly one, then execs the requested
+# command (default: the interactive TUI).
 #
 # Secrets are passed in through the environment (--env-file or a Kubernetes
 # Secret). This script never reads or writes a .env file; the runtime env
@@ -42,6 +43,18 @@ if [[ -n "${GITLAB_TOKEN:-}" || -n "${FORGEJO_TOKEN:-}${FORGEJO_URL:-}" ]]; then
   } >"${HOME}/.git-credentials"
   chmod 600 "${HOME}/.git-credentials"
   git config --global credential.helper store
+fi
+
+# OpenCode works in the current directory. When exactly one project is
+# mounted under /home/opencode/projects, start inside it so the TUI opens
+# the project directly. With zero or several mounts the workspace stays
+# the projects root; open a specific project by passing the directory to
+# opencode, for example `opencode /home/opencode/projects/frontend`.
+shopt -s nullglob
+projects=("/home/opencode/projects"/*)
+shopt -u nullglob
+if [[ ${#projects[@]} -eq 1 && -d "${projects[0]}" ]]; then
+  cd "${projects[0]}"
 fi
 
 exec "$@"

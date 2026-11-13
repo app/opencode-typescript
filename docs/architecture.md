@@ -15,7 +15,7 @@ Repository layout, the image, and the GitHub Actions pipeline.
 ├── scripts/
 │   └── resolve-versions.sh           # resolves the current OpenCode and Node LTS
 ├── config/
-│   ├── bin/entrypoint.sh             # git identity, gh auth setup-git, exec "$@"
+│   ├── bin/entrypoint.sh             # git identity, forge credentials, cd into the project, exec "$@"
 │   ├── gitconfig                     # generic gitconfig for the non-root user
 │   ├── mise/config.toml              # mise settings (musl, slow-mirror timeouts)
 │   ├── sudoers.d/opencode            # passwordless sudo policy
@@ -50,10 +50,12 @@ The image bakes configuration, not secrets:
 - `.env.example` → `/home/opencode/.env.example` (the runtime env template);
 - `config/bin/entrypoint.sh` → `/usr/local/bin/entrypoint.sh` (git identity
   from the environment, forge git credentials from `GH_TOKEN`,
-  `GITLAB_TOKEN`, `FORGEJO_TOKEN` when set, then `exec "$@"`).
+  `GITLAB_TOKEN`, `FORGEJO_TOKEN` when set, a `cd` into the single mounted
+  project when there is one, then `exec "$@"`).
 
 The default command is the interactive TUI: `docker run -it ... image` opens
-a session with no OpenCode installation on the host. The server
+a session with no OpenCode installation on the host, in the mounted project
+(the entrypoint `cd`s into it when it is the only project mount). The server
 (`opencode serve --hostname 0.0.0.0 --port 4096`) is started explicitly —
 the k8s deployment and the CI smoke test pass it as the container command.
 See [Usage](usage.md) and [Access](api.md).

@@ -36,9 +36,9 @@ docker run -it --rm \
 ```
 
 The TUI opens inside the container; the project is mounted read-write at
-`/home/opencode/projects/<name>` and is the working directory. The
-`opencode-state` volume keeps credentials and the session database across
-runs. The session starts on OpenCode's free built-in model — start typing
+`/home/opencode/projects/<name>` and OpenCode starts inside it, so the
+session opens your project directly. The `opencode-state` volume keeps
+credentials and the session database across runs. The session starts on OpenCode's free built-in model — start typing
 right away, no key needed; the sidebar's `/connect` hint leads to other
 models (see [More models](#more-models-optional)).
 

@@ -16,6 +16,10 @@ Common errors and fixes.
   local image is stale. `podman run` and `docker run` reuse a local image
   without re-pulling it: run
   `podman pull ghcr.io/app/opencode-typescript:latest` and start again.
+- The TUI opens at `/home/opencode/projects` instead of your project: that
+  is expected when several projects are mounted (or none). Open a specific
+  project by appending its directory to the run command:
+  `opencode /home/opencode/projects/<name>`.
 
 ## The server does not respond (server mode)
 
