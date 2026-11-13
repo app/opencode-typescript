@@ -105,6 +105,10 @@ Variable reference:
 | `OPENROUTER_API_KEY`                         | yes (default model) | API key for the default provider                                     |
 | `OPENCODE_PASSWORD`                          | no (server mode)    | server password; when empty, one is generated and printed to the log |
 | `GH_TOKEN`                                   | no                  | GitHub token for git over HTTPS and the `gh` CLI                     |
+| `GITLAB_TOKEN`                               | no                  | GitLab token for git, the `glab` CLI and the API                     |
+| `GITLAB_URL`                                 | no                  | self-hosted GitLab host (default `https://gitlab.com`)               |
+| `FORGEJO_URL`                                | no                  | Forgejo/Gitea instance URL, required for `FORGEJO_TOKEN`             |
+| `FORGEJO_TOKEN`                              | no                  | Forgejo token for git and the REST API                               |
 | `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL`       | no                  | author identity for commits                                          |
 | `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` | no                  | committer identity for commits                                       |
 

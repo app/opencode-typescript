@@ -48,8 +48,8 @@ The image bakes configuration, not secrets:
 - `config/gitconfig` → `/home/opencode/.gitconfig` (generic identity);
 - `.env.example` → `/home/opencode/.env.example` (the runtime env template);
 - `config/bin/entrypoint.sh` → `/usr/local/bin/entrypoint.sh` (git identity
-  from the environment, `gh auth setup-git` when `GH_TOKEN` is set, then
-  `exec "$@"`).
+  from the environment, forge git credentials from `GH_TOKEN`,
+  `GITLAB_TOKEN`, `FORGEJO_TOKEN` when set, then `exec "$@"`).
 
 The default command is the interactive TUI: `docker run -it ... image` opens
 a session with no OpenCode installation on the host. The server

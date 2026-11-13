@@ -21,8 +21,9 @@
   the image; the image ships the documented template
   (`/home/opencode/.env.example`) instead.
 - Every process in the container, including the agent, sees the forwarded
-  variables. A `GH_TOKEN` is usable by the agent for anything that token can
-  do — prefer a dedicated token with the minimum scopes.
+  variables. A forge token (`GH_TOKEN`, `GITLAB_TOKEN`, `FORGEJO_TOKEN`) is
+  usable by the agent for anything that token can do — prefer a dedicated
+  token with the minimum scopes.
 - The `OPENCODE_PASSWORD` (or the generated one printed to the log) protects
   the HTTP API with Basic auth in server mode. Keep the log private when the
   password is generated.

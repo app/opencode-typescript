@@ -52,8 +52,10 @@ Common errors and fixes.
 
 ## Git operations fail
 
-- Git over HTTPS needs `GH_TOKEN` in the container environment; the
-  entrypoint runs `gh auth setup-git` when it is set.
+- Git over HTTPS is preconfigured by the entrypoint from the tokens in the
+  container environment: `GH_TOKEN` (GitHub, via `gh auth setup-git`),
+  `GITLAB_TOKEN` (+ `GITLAB_URL`) and `FORGEJO_TOKEN` (+ `FORGEJO_URL`).
+  Check that the token for the host you push to is set.
 - Commits are signed with the `GIT_AUTHOR_*` / `GIT_COMMITTER_*` variables or
   the baked generic identity; set the variables in the env file.
 - If the repository is owned by a different host user, use

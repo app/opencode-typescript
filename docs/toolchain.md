@@ -10,7 +10,7 @@ tooling and native build tools are available out of the box.
 | Node.js    | `mise`, current Node LTS, `npm`, `pnpm`, `yarn`                                                            |
 | TypeScript | `typescript` (`tsc`), `typescript-language-server`, `prettier`                                             |
 | Python     | `python3`, `uv`                                                                                            |
-| Git        | `git`, `openssh-client`, `gh`                                                                              |
+| Git        | `git`, `openssh-client`, `gh`, `glab`                                                                      |
 | Build      | `gcc`/`g++`, `make`, `linux-headers`, `pkgconf`, `openssl-dev` (node-gyp)                                  |
 | Shell      | `bash`, `shellcheck`, `shfmt`, GNU userland (`coreutils`, `findutils`, `grep`, `sed`, `gawk`, `diffutils`) |
 | Misc       | `less`, `file`, `tree`, `curl`, `xz`, `unzip`, `zip`, `tzdata`                                             |
