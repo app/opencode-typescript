@@ -22,7 +22,7 @@ Podman:
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -31,7 +31,7 @@ Docker (the same, without `--userns=keep-id`):
 ```bash
 docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -40,8 +40,8 @@ it creates keep your ownership (a no-op when your UID is 1000).
 
 The TUI opens inside the container; the project is mounted read-write at
 `/home/opencode/projects/<name>` and OpenCode starts inside it, so the
-session opens your project directly. The `opencode-state` volume keeps
-credentials and the session database across runs. The session starts on OpenCode's free built-in model — start typing
+session opens your project directly. The `opencode-state-<user>` volume
+(one per user) keeps credentials and the session database across runs. The session starts on OpenCode's free built-in model — start typing
 right away, no key needed; the sidebar's `/connect` hint leads to other
 models (see [More models](#more-models-optional)).
 
@@ -54,13 +54,13 @@ wins.
 ### Option 1: connect in the TUI (`/connect`)
 
 With the TUI open, type `/connect`, pick OpenRouter, and enter the API key.
-The credential is stored in the `opencode-state` volume, so every later run
+The credential is stored in your `opencode-state-<user>` volume, so every later run
 has the models. The same credential can be stored from the host without the
 TUI:
 
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
 ```
 
@@ -80,7 +80,7 @@ current folder, which is on the host), or copy
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   --env-file .env \
   ghcr.io/app/opencode-typescript:latest
 ```
@@ -90,14 +90,14 @@ The same works with Docker (without `--userns=keep-id`). See
 
 Either way, the OpenRouter models then appear in the TUI's model picker —
 pick the one you want to work with; the pick is remembered on the
-`opencode-state` volume and used on later runs.
+`opencode-state-<user>` volume and used on later runs.
 
 ## The launcher (optional)
 
 The repository ships `bin/opencode-ts`, a thin wrapper over podman/docker for
 people who prefer a shorter command: it resolves the engine (Podman first,
 override with `OPENCODE_TS_ENGINE`), mounts the current project and the
-`opencode-state` volume, finds the env file on its own
+`opencode-state-<user>` volume, finds the env file on its own
 (`OPENCODE_TS_ENV_FILE` → `./.env` → `~/.config/opencode-typescript/env`), and
 passes all remaining arguments to opencode unchanged. Fetch the single file
 from the repository and install it:
@@ -126,5 +126,5 @@ Remove the image and the state volume:
 
 ```bash
 podman rmi ghcr.io/app/opencode-typescript:latest
-podman volume rm opencode-state
+podman volume rm opencode-state-$(id -un)
 ```

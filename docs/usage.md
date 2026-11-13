@@ -12,7 +12,7 @@ Podman:
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -21,7 +21,7 @@ Docker (the same, without `--userns=keep-id`):
 ```bash
 docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -40,7 +40,7 @@ Server mode is an explicit command on top of the same image:
 ```bash
 podman run -d --name opencode --userns=keep-id --user "$(id -u):$(id -g)" -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   --env-file .env \
   ghcr.io/app/opencode-typescript:latest \
   opencode serve --hostname 0.0.0.0 --port 4096
@@ -71,10 +71,10 @@ is available under Basic auth on the same port.
 
 ## Mounts
 
-| Host path               | Container path                   | Purpose                                                                          |
-| ----------------------- | -------------------------------- | -------------------------------------------------------------------------------- |
-| your project directory  | `/home/opencode/projects/<name>` | the agent's working project; OpenCode starts inside it when it is the only mount |
-| `opencode-state` volume | `/home/opencode/.local`          | credentials and the session database                                             |
+| Host path                      | Container path                   | Purpose                                                                          |
+| ------------------------------ | -------------------------------- | -------------------------------------------------------------------------------- |
+| your project directory         | `/home/opencode/projects/<name>` | the agent's working project; OpenCode starts inside it when it is the only mount |
+| `opencode-state-<user>` volume | `/home/opencode/.local`          | credentials and the session database, one per user                               |
 
 - `--user "$(id -u):$(id -g)"` (in every command above) makes the agent run
   as your host user, so files it creates — in the project and on the state
@@ -82,10 +82,12 @@ is available under Basic auth on the same port.
   image's built-in user. With Podman it works together with
   `--userns=keep-id`, which maps your host UID into the container
   namespace.
-- If the state volume was created by an older image (files owned by uid
-  1000), a different UID cannot write to it: remove the volume once
-  (`podman volume rm opencode-state`, or the Docker equivalent) and start
-  again. Stored credentials are re-added with `/connect`.
+- If you used an earlier version of this image, its state lived in a single
+  shared volume, `opencode-state` (with permissions only uid 1000 could
+  write). The commands above now use one volume per user,
+  `opencode-state-<user>`; the old volume is simply not used anymore.
+  Remove it when you no longer need it (`podman volume rm opencode-state`,
+  or the Docker equivalent). Stored credentials are re-added with `/connect`.
 - Mount sibling projects read-only with extra `-v` mounts under
   `/home/opencode/projects/`, for example
   `-v ../frontend:/home/opencode/projects/frontend:ro` (the launcher's

@@ -22,7 +22,8 @@
 #   OPENCODE_TS_IMAGE     image to run (default: ghcr.io/app/opencode-typescript:latest)
 #   OPENCODE_TS_ENV_FILE  env file (default: ./.env, then ~/.config/opencode-typescript/env)
 #   OPENCODE_TS_PROJECT   project directory (default: the current directory)
-#   OPENCODE_TS_STATE     state volume name (default: opencode-state)
+#   OPENCODE_TS_STATE     state volume name (default: opencode-state-$(id -un),
+#                         one volume per user)
 #   OPENCODE_TS_RUN_ARGS  extra raw engine run arguments (for example -p 4096:4096)
 #
 # Runtime secrets come from the env file; variables that are already set in
@@ -81,7 +82,7 @@ esac
 IMAGE="${OPENCODE_TS_IMAGE:-ghcr.io/app/opencode-typescript:latest}"
 PROJECT_DIR="$(realpath "${OPENCODE_TS_PROJECT:-$PWD}")"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
-STATE_VOLUME="${OPENCODE_TS_STATE:-opencode-state}"
+STATE_VOLUME="${OPENCODE_TS_STATE:-opencode-state-$(id -un)}"
 
 # Container paths. The image's built-in user is uid 1000 with this home
 # directory; the run command below overrides the user with the host UID.

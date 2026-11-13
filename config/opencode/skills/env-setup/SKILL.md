@@ -21,7 +21,7 @@ the environment (`OPENROUTER_API_KEY`) or as a stored account from the TUI's
 `/connect` command or `opencode auth login openrouter`. If the user wants
 OpenRouter models and the key is missing or invalid, copying the template
 does not fix it: tell the user to connect in the TUI with `/connect` (the key
-is stored on the `opencode-state` volume) or to set `OPENROUTER_API_KEY` in
+is stored on the state volume) or to set `OPENROUTER_API_KEY` in
 the env file and restart. Use this skill for the remaining variables.
 
 ## Check

@@ -10,7 +10,7 @@ The image default. From the project directory:
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 

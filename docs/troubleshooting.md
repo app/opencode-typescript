@@ -48,8 +48,9 @@ Common errors and fixes.
 
 - A 401/"missing API key" from OpenRouter means the container has no OpenRouter
   key: neither `OPENROUTER_API_KEY` in the environment nor a connected
-  account. Connect once in the TUI with `/connect` (the key is stored on the
-  `opencode-state` volume), or set the variable in the env file (or the
+  account. Connect once in the TUI with `/connect` (the key is stored on
+  your `opencode-state-<user>` volume), or set the variable in the env file
+  (or the
   Kubernetes Secret) and restart with `--env-file` / the updated Secret.
 - Without any key the TUI opens on a free built-in model and the agent
   answers without a key. For more models, connect OpenRouter (see

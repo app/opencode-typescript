@@ -13,7 +13,7 @@ Podman:
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -22,14 +22,16 @@ Docker (the same, without `--userns=keep-id`):
 ```bash
 docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
-  -v opencode-state:/home/opencode/.local \
+  -v opencode-state-$(id -un):/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
 `--user "$(id -u):$(id -g)"` makes the agent run as your host user, so files
 it creates in the project keep your ownership (a no-op when your UID is
-already 1000). The TUI opens on OpenCode's free built-in model — start
-typing, no key needed. For other models, connect OpenRouter with the TUI's `/connect`
+already 1000). State (sessions, connected accounts) is kept in the per-user
+volume `opencode-state-<user>`, so users of a shared machine do not share
+it. The TUI opens on OpenCode's free built-in model — start typing, no key
+needed. For other models, connect OpenRouter with the TUI's `/connect`
 command and pick a model in the model picker. See
 [Installation](docs/installation.md).
 
@@ -62,7 +64,7 @@ Kubernetes: [Kubernetes](docs/kubernetes.md).
 
 OpenCode runs as your host UID with a restricted sudo policy, so treat the
 container as the security boundary. Secrets live only on the host or on the
-`opencode-state` volume: the runtime env file, the calling environment, a
+`opencode-state-<user>` volume: the runtime env file, the calling environment, a
 Kubernetes Secret, or a connected account. Nothing secret is baked into the
 image; it ships a documented `.env.example` template, and a built-in agent
 skill offers to copy it into the working folder when runtime variables are
