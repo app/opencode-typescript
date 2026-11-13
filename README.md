@@ -44,17 +44,17 @@ Kubernetes: see [Kubernetes](docs/kubernetes.md).
 
 ## Documentation
 
-| Document                                   | Contents                                                     |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| [Installation](docs/installation.md)       | Requirements, pulling the image, the env file setup          |
-| [Usage](docs/usage.md)                     | Running the container, mounts, passing secrets, the launcher |
-| [Access](docs/api.md)                      | TUI, web UI and the HTTP API for agents, Basic auth, OpenAPI |
-| [Kubernetes](docs/kubernetes.md)           | Deployment, Service and Secret examples for server mode      |
-| [Toolchain](docs/toolchain.md)             | Installed tools, Node.js and mise, installing extra packages |
-| [Architecture](docs/architecture.md)       | Repository layout, the image, the GitHub Actions pipeline    |
-| [Updating](docs/updating.md)               | How versions are resolved and how image releases work        |
-| [Security notes](docs/security.md)         | Trust model and secret handling                              |
-| [Troubleshooting](docs/troubleshooting.md) | Common errors and fixes                                      |
+| Document                                   | Contents                                                          |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| [Installation](docs/installation.md)       | Requirements, pulling the image, the env file setup               |
+| [Usage](docs/usage.md)                     | Running the container, mounts, passing secrets, command overrides |
+| [Access](docs/api.md)                      | TUI, web UI and the HTTP API for agents, Basic auth, OpenAPI      |
+| [Kubernetes](docs/kubernetes.md)           | Deployment, Service and Secret examples for server mode           |
+| [Toolchain](docs/toolchain.md)             | Installed tools, Node.js and mise, installing extra packages      |
+| [Architecture](docs/architecture.md)       | Repository layout, the image, the GitHub Actions pipeline         |
+| [Updating](docs/updating.md)               | How versions are resolved and how image releases work             |
+| [Security notes](docs/security.md)         | Trust model and secret handling                                   |
+| [Troubleshooting](docs/troubleshooting.md) | Common errors and fixes                                           |
 
 ## Security
 
