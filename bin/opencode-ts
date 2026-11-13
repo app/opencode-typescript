@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+#
+# Run OpenCode from the opencode-typescript image in a container.
+#
+# This script is a thin launcher over podman or docker: it resolves the
+# engine, mounts the current project, wires up the env file and the state
+# volume, and starts the container. The image itself (built by the GitHub
+# Actions workflow) is the source of truth for the toolchain.
+#
+# With no arguments the container default starts the interactive TUI, so
+# `opencode-ts` from a project directory opens a session immediately. All
+# other arguments are passed to opencode unchanged, for example:
+#
+#   opencode-ts                       # TUI in the current project
+#   opencode-ts -r ../frontend        # mount ../frontend read-only
+#   opencode-ts run "explain this repository"
+#   opencode-ts serve --hostname 0.0.0.0 --port 4096
+#   opencode-ts bash                  # a shell inside the container
+#
+# Environment:
+#   OPENCODE_TS_ENGINE    podman or docker (default: first found, podman first)
+#   OPENCODE_TS_IMAGE     image to run (default: ghcr.io/app/opencode-typescript:latest)
+#   OPENCODE_TS_ENV_FILE  env file (default: ./.env, then ~/.config/opencode-typescript/env)
+#   OPENCODE_TS_PROJECT   project directory (default: the current directory)
+#   OPENCODE_TS_STATE     state volume name (default: opencode-state)
+#   OPENCODE_TS_RUN_ARGS  extra raw engine run arguments (for example -p 4096:4096)
+#
+# Runtime secrets come from the env file; variables that are already set in
+# the calling shell (OPENROUTER_API_KEY, OPENCODE_PASSWORD, GH_TOKEN,
+# GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL, GIT_COMMITTER_NAME, GIT_COMMITTER_EMAIL)
+# are forwarded as well, and a value from the shell wins over the env file.
+
+set -euo pipefail
+
+# --- Launcher flags; everything else is passed to opencode unchanged. -----
+RO_PATHS=()
+ARGS=()
+while (($#)); do
+  case "$1" in
+  -r | --readonly)
+    if (($# < 2)); then
+      echo "Missing path for $1." >&2
+      exit 2
+    fi
+    RO_PATHS+=("$2")
+    shift
+    ;;
+  -h | --help)
+    sed -n '2,31s/^# \{0,1\}//p' "$0"
+    exit 0
+    ;;
+  *)
+    ARGS+=("$1")
+    ;;
+  esac
+  shift
+done
+# The + guard keeps this working on bash 3.2 (macOS) with set -u.
+set -- ${ARGS[@]+"${ARGS[@]}"}
+
+# --- Engine ----------------------------------------------------------------
+ENGINE="${OPENCODE_TS_ENGINE:-}"
+if [[ -z "$ENGINE" ]]; then
+  if command -v podman >/dev/null 2>&1; then
+    ENGINE=podman
+  elif command -v docker >/dev/null 2>&1; then
+    ENGINE=docker
+  else
+    echo "Neither podman nor docker found in PATH." >&2
+    exit 1
+  fi
+fi
+case "$ENGINE" in
+podman | docker) ;;
+*)
+  echo "Unsupported engine: $ENGINE (use podman or docker)." >&2
+  exit 2
+  ;;
+esac
+
+IMAGE="${OPENCODE_TS_IMAGE:-ghcr.io/app/opencode-typescript:latest}"
+PROJECT_DIR="$(realpath "${OPENCODE_TS_PROJECT:-$PWD}")"
+PROJECT_NAME="$(basename "$PROJECT_DIR")"
+STATE_VOLUME="${OPENCODE_TS_STATE:-opencode-state}"
+
+# Container paths. The image runs as uid 1000 with this home directory.
+CONTAINER_HOME="/home/opencode"
+CONTAINER_PROJECT="${CONTAINER_HOME}/projects/${PROJECT_NAME}"
+
+if [[ "$ENGINE" == "podman" ]] && ! podman image exists "$IMAGE"; then
+  echo "Image $IMAGE not found. Pull it with: podman pull $IMAGE" >&2
+  exit 1
+fi
+if [[ "$ENGINE" == "docker" ]] && ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  echo "Image $IMAGE not found. Pull it with: docker pull $IMAGE" >&2
+  exit 1
+fi
+
+# --- Env file --------------------------------------------------------------
+# Resolution order: OPENCODE_TS_ENV_FILE, a .env in the project directory,
+# the user-level env file. An explicitly named file must exist.
+if [[ -n "${OPENCODE_TS_ENV_FILE:-}" ]]; then
+  ENV_FILE="$OPENCODE_TS_ENV_FILE"
+  if [[ ! -f "$ENV_FILE" ]]; then
+    echo "Env file not found: $ENV_FILE" >&2
+    exit 1
+  fi
+elif [[ -f "${PROJECT_DIR}/.env" ]]; then
+  ENV_FILE="${PROJECT_DIR}/.env"
+elif [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/opencode-typescript/env" ]]; then
+  ENV_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/opencode-typescript/env"
+else
+  ENV_FILE=""
+fi
+
+# Runtime secrets from the env file are forwarded into the container. The
+# config references them as {env:NAME}, so nothing is baked into the image.
+# Values set in the calling shell (OPENROUTER_API_KEY, ...) win over the
+# file, so one env file can serve projects with different secrets.
+SHELL_VARS=(OPENROUTER_API_KEY OPENCODE_PASSWORD GH_TOKEN GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL)
+SHELL_OVERRIDE=""
+for name in "${SHELL_VARS[@]}"; do
+  if [[ -n "${!name:-}" ]]; then
+    SHELL_OVERRIDE+="${name}=${!name}"$'\n'
+  fi
+done
+
+ENVS=(
+  --env "TERM=${TERM:-xterm-256color}"
+  --env "COLORTERM=${COLORTERM:-truecolor}"
+)
+if [[ -n "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+  # Forward every variable the file defines (bare --env picks the value up
+  # from the current environment, which now holds the file's values).
+  while IFS='=' read -r name _; do
+    # Host-side launcher settings are never forwarded into the container.
+    [[ "$name" == OPENCODE_TS_* ]] && continue
+    ENVS+=("--env" "$name")
+  done < <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "$ENV_FILE")
+fi
+# Explicit shell values go last so they win over the file's values.
+if [[ -n "$SHELL_OVERRIDE" ]]; then
+  while IFS= read -r spec; do
+    [[ -n "$spec" ]] && ENVS+=("--env" "$spec")
+  done <<<"$SHELL_OVERRIDE"
+fi
+
+# --- Mounts ------------------------------------------------------------------
+# On SELinux hosts the bind mounts need relabelling.
+SELINUX_SUFFIX=""
+if [[ -e /sys/fs/selinux/enforce ]] && [[ "$(cat /sys/fs/selinux/enforce)" == "1" ]]; then
+  SELINUX_SUFFIX=",z"
+fi
+
+VOLUMES=(
+  --volume "${STATE_VOLUME}:/home/opencode/.local"
+  --volume "${PROJECT_DIR}:${CONTAINER_PROJECT}${SELINUX_SUFFIX}"
+)
+
+# Optional read-only sibling projects (-r/--readonly), resolved relative to
+# the current directory and mounted at /home/opencode/projects/<name>.
+for path in ${RO_PATHS[@]+"${RO_PATHS[@]}"}; do
+  src="$(realpath -m "$path")"
+  if [[ ! -d "$src" ]]; then
+    echo "Read-only project not found: $src" >&2
+    exit 1
+  fi
+  name="$(basename "$src")"
+  if [[ -n "$name" && "$name" != "$PROJECT_NAME" ]]; then
+    VOLUMES+=(--volume "${src}:${CONTAINER_HOME}/projects/${name}:ro${SELINUX_SUFFIX}")
+  fi
+done
+
+# --- Run -----------------------------------------------------------------------
+# podman maps the container uid 1000 to the host user, so files created in
+# the project keep the host ownership. docker has no equivalent; files
+# created in the container are owned by uid 1000 on the host.
+ENGINE_ARGS=()
+if [[ "$ENGINE" == "podman" ]]; then
+  ENGINE_ARGS+=(--userns=keep-id)
+fi
+# Extra raw engine arguments (for example -p 4096:4096 for server mode).
+if [[ -n "${OPENCODE_TS_RUN_ARGS:-}" ]]; then
+  read -ra ENGINE_ARGS_EXTRA <<<"${OPENCODE_TS_RUN_ARGS}"
+  ENGINE_ARGS+=("${ENGINE_ARGS_EXTRA[@]}")
+fi
+
+exec "$ENGINE" run --interactive --tty --rm \
+  --name "opencode-ts-${PROJECT_NAME}-$$" \
+  --init \
+  ${ENGINE_ARGS[@]+"${ENGINE_ARGS[@]}"} \
+  "${ENVS[@]}" \
+  --workdir "$CONTAINER_PROJECT" \
+  "${VOLUMES[@]}" \
+  "$IMAGE" "$@"
