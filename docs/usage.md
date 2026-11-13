@@ -27,8 +27,8 @@ docker run -it --rm \
 
 No server, no published port, and nothing installed on the host. The project
 directory is mounted read-write at `/home/opencode/projects/<name>` and is
-the working directory. Once a `.env` file exists (see
-[Installation](installation.md#provide-the-api-key)), add `--env-file .env`
+the working directory. If you have a `.env` file (see
+[More models](installation.md#more-models-optional)), add `--env-file .env`
 to the command. The optional [launcher](installation.md#the-launcher-optional)
 wraps exactly this.
 
@@ -94,10 +94,10 @@ Secrets are never baked into the image; they are passed at runtime:
 -e OPENROUTER_API_KEY=...         # or individual variables
 ```
 
-The OpenRouter key can also be stored once with
-`opencode auth login openrouter` (see
-[Installation](installation.md#provide-the-api-key)); when both are present,
-the stored key wins.
+The OpenRouter key is optional (the free built-in models need no key) and
+can also be stored once with `opencode auth login openrouter` (see
+[Installation](installation.md#more-models-optional)); when both are
+present, the stored key wins.
 
 By convention the file lives in the project directory (`.env`); the optional
 [launcher](installation.md#the-launcher-optional) finds it on its own. The
@@ -105,17 +105,17 @@ template documenting every variable lives in the repository root
 (`.env.example`) and inside the image at `/home/opencode/.env.example`.
 Variable reference:
 
-| Variable                                     | Required            | Purpose                                                              |
-| -------------------------------------------- | ------------------- | -------------------------------------------------------------------- |
-| `OPENROUTER_API_KEY`                         | yes (or stored key) | API key for the default provider                                     |
-| `OPENCODE_PASSWORD`                          | no (server mode)    | server password; when empty, one is generated and printed to the log |
-| `GH_TOKEN`                                   | no                  | GitHub token for git over HTTPS and the `gh` CLI                     |
-| `GITLAB_TOKEN`                               | no                  | GitLab token for git, the `glab` CLI and the API                     |
-| `GITLAB_URL`                                 | no                  | self-hosted GitLab host (default `https://gitlab.com`)               |
-| `FORGEJO_URL`                                | no                  | Forgejo/Gitea instance URL, required for `FORGEJO_TOKEN`             |
-| `FORGEJO_TOKEN`                              | no                  | Forgejo token for git and the REST API                               |
-| `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL`       | no                  | author identity for commits                                          |
-| `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` | no                  | committer identity for commits                                       |
+| Variable                                     | Required         | Purpose                                                              |
+| -------------------------------------------- | ---------------- | -------------------------------------------------------------------- |
+| `OPENROUTER_API_KEY`                         | no               | API key for OpenRouter models; the free built-in models need no key  |
+| `OPENCODE_PASSWORD`                          | no (server mode) | server password; when empty, one is generated and printed to the log |
+| `GH_TOKEN`                                   | no               | GitHub token for git over HTTPS and the `gh` CLI                     |
+| `GITLAB_TOKEN`                               | no               | GitLab token for git, the `glab` CLI and the API                     |
+| `GITLAB_URL`                                 | no               | self-hosted GitLab host (default `https://gitlab.com`)               |
+| `FORGEJO_URL`                                | no               | Forgejo/Gitea instance URL, required for `FORGEJO_TOKEN`             |
+| `FORGEJO_TOKEN`                              | no               | Forgejo token for git and the REST API                               |
+| `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL`       | no               | author identity for commits                                          |
+| `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` | no               | committer identity for commits                                       |
 
 When the agent is already running and a token or another variable is missing,
 it can offer to copy the template into the working folder (the `env-setup`

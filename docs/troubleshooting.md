@@ -48,8 +48,9 @@ Common errors and fixes.
   stored on the `opencode-state` volume), or set the variable in the env file
   (or the Kubernetes Secret) and restart with `--env-file` / the updated
   Secret.
-- Without any key the TUI still opens, but the agent cannot answer: the
-  default model has nothing to talk to. This is expected, not a crash.
+- Without any key the TUI opens on a free built-in model and the agent
+  answers without a key. For more models, connect OpenRouter (see
+  [Installation](installation.md#more-models-optional)).
 - When the agent is running and another variable (for example a forge token)
   is missing, the `env-setup` skill offers to copy the template from
   `/home/opencode/.env.example` into the working folder.

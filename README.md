@@ -6,26 +6,7 @@ and the agent is working — the TUI opens inside the container.
 
 ## Quick start
 
-One-time setup: connect an OpenRouter account. The key is stored on the
-`opencode-state` volume; later runs need nothing else.
-
-Podman:
-
-```bash
-podman run -it --rm --userns=keep-id \
-  -v opencode-state:/home/opencode/.local \
-  ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
-```
-
-Docker (the same, without `--userns=keep-id`):
-
-```bash
-docker run -it --rm \
-  -v opencode-state:/home/opencode/.local \
-  ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
-```
-
-Then, from the project directory you want the agent to work in:
+From the project directory you want the agent to work in:
 
 Podman:
 
@@ -44,6 +25,13 @@ docker run -it --rm \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
+
+The TUI opens on OpenCode's free built-in model — start typing, no key
+needed. For other models, connect OpenRouter (a `.env` file with
+`OPENROUTER_API_KEY` or a one-time `opencode auth login openrouter`) and pick
+a model in the TUI; on the first run the model offers an example `.env` file
+for connecting models beyond the ones that ship with OpenCode. See
+[Installation](docs/installation.md).
 
 ## The image
 
@@ -83,7 +71,7 @@ missing. See [Security notes](docs/security.md).
 
 | Document                                   | Contents                                                          |
 | ------------------------------------------ | ----------------------------------------------------------------- |
-| [Installation](docs/installation.md)       | Requirements, the first run, the API key, the optional launcher   |
+| [Installation](docs/installation.md)       | Requirements, the first run, more models, the optional launcher   |
 | [Usage](docs/usage.md)                     | Running the container, mounts, passing secrets, command overrides |
 | [Access](docs/api.md)                      | TUI, web UI and the HTTP API for agents, Basic auth, OpenAPI      |
 | [Kubernetes](docs/kubernetes.md)           | Deployment, Service and Secret examples for server mode           |

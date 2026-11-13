@@ -9,8 +9,9 @@ so no OpenCode client is needed on the host.
 - [Docker](https://www.docker.com/) or [rootless Podman](https://podman.io/).
   For Podman, enable subuid mappings so `--userns=keep-id` works
   (`subuid`/`subgid` entries in `/etc/subuid` and `/etc/subgid`).
-- An OpenRouter API key for the default model (any other provider can be
-  added later in the baked config).
+- Nothing else: OpenCode's free built-in models work without any account or
+  key. An [OpenRouter](https://openrouter.ai/) API key is optional — see
+  [More models](#more-models-optional).
 
 ## Open the first session
 
@@ -37,12 +38,14 @@ docker run -it --rm \
 The TUI opens inside the container; the project is mounted read-write at
 `/home/opencode/projects/<name>` and is the working directory. The
 `opencode-state` volume keeps credentials and the session database across
-runs.
+runs. The session starts on OpenCode's free built-in model — start typing
+right away, no key needed; on the first run the model offers an example
+`.env` file for connecting other models.
 
-## Provide the API key
+## More models (optional)
 
-The default model runs on OpenRouter, so a key is required before the first
-session. Two ways to provide it; when both are present, the stored account
+The free built-in models need no key. To use OpenRouter models, connect
+OpenRouter once; two ways, and when both are present, the stored account
 wins.
 
 ### Option 1: connect an account (stored on the state volume)
@@ -64,9 +67,8 @@ docker run -it --rm \
 ```
 
 The prompt asks for your OpenRouter API key and stores the credential in the
-`opencode-state` volume, so every later run works with the plain quick start
-command. Remove the stored key the same way, with
-`opencode auth logout openrouter`.
+`opencode-state` volume, so every later run has the models. Remove the
+stored key the same way, with `opencode auth logout openrouter`.
 
 ### Option 2: environment variable
 
@@ -84,6 +86,10 @@ podman run -it --rm --userns=keep-id \
 
 The same works with Docker (without `--userns=keep-id`). See
 [Security notes](security.md) for how secrets are handled.
+
+Either way, the OpenRouter models then appear in the TUI's model picker —
+pick the one you want to work with; the pick is remembered on the
+`opencode-state` volume and used on later runs.
 
 ## The launcher (optional)
 
