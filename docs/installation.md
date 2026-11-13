@@ -39,8 +39,8 @@ The TUI opens inside the container; the project is mounted read-write at
 `/home/opencode/projects/<name>` and is the working directory. The
 `opencode-state` volume keeps credentials and the session database across
 runs. The session starts on OpenCode's free built-in model — start typing
-right away, no key needed; on the first run the model offers an example
-`.env` file for connecting other models.
+right away, no key needed; the sidebar's `/connect` hint leads to other
+models (see [More models](#more-models-optional)).
 
 ## More models (optional)
 
@@ -48,9 +48,12 @@ The free built-in models need no key. To use OpenRouter models, connect
 OpenRouter once; two ways, and when both are present, the stored account
 wins.
 
-### Option 1: connect an account (stored on the state volume)
+### Option 1: connect in the TUI (`/connect`)
 
-Podman:
+With the TUI open, type `/connect`, pick OpenRouter, and enter the API key.
+The credential is stored in the `opencode-state` volume, so every later run
+has the models. The same credential can be stored from the host without the
+TUI:
 
 ```bash
 podman run -it --rm --userns=keep-id \
@@ -58,23 +61,18 @@ podman run -it --rm --userns=keep-id \
   ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
 ```
 
-Docker (the same, without `--userns=keep-id`):
+The same works with Docker (without `--userns=keep-id`). Remove the stored
+key the same way, with `opencode auth logout openrouter` in place of
+`auth login openrouter`.
 
-```bash
-docker run -it --rm \
-  -v opencode-state:/home/opencode/.local \
-  ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
-```
+### Option 2: environment file
 
-The prompt asks for your OpenRouter API key and stores the credential in the
-`opencode-state` volume, so every later run has the models. Remove the
-stored key the same way, with `opencode auth logout openrouter`.
-
-### Option 2: environment variable
-
-Keep the key on the host: put it in a `.env` file (created from the template
-baked into the image at `/home/opencode/.env.example`, kept private with
-`chmod 600 .env` and added to `.gitignore`) and pass it on the run command:
+Keep the key on the host: put it in a `.env` file in the project folder —
+ask the agent to create it (it copies the template from the image into the
+current folder, which is on the host), or copy
+[.env.example](../.env.example) from the repository — fill in
+`OPENROUTER_API_KEY`, keep it private with `chmod 600 .env` and add it to
+`.gitignore`, and pass it on the run command:
 
 ```bash
 podman run -it --rm --userns=keep-id \

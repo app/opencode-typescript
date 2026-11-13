@@ -94,10 +94,10 @@ Secrets are never baked into the image; they are passed at runtime:
 -e OPENROUTER_API_KEY=...         # or individual variables
 ```
 
-The OpenRouter key is optional (the free built-in models need no key) and
-can also be stored once with `opencode auth login openrouter` (see
-[Installation](installation.md#more-models-optional)); when both are
-present, the stored key wins.
+The OpenRouter key is optional (the free built-in models need no key); to
+connect, use the TUI's `/connect` command (see
+[Installation](installation.md#more-models-optional)) — the stored account
+wins over the environment.
 
 By convention the file lives in the project directory (`.env`); the optional
 [launcher](installation.md#the-launcher-optional) finds it on its own. The

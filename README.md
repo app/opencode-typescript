@@ -27,10 +27,8 @@ docker run -it --rm \
 ```
 
 The TUI opens on OpenCode's free built-in model — start typing, no key
-needed. For other models, connect OpenRouter (a `.env` file with
-`OPENROUTER_API_KEY` or a one-time `opencode auth login openrouter`) and pick
-a model in the TUI; on the first run the model offers an example `.env` file
-for connecting models beyond the ones that ship with OpenCode. See
+needed. For other models, connect OpenRouter with the TUI's `/connect`
+command and pick a model in the model picker. See
 [Installation](docs/installation.md).
 
 ## The image
