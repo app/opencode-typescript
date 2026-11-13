@@ -16,9 +16,10 @@
 
 ## Secrets
 
-- Secrets live only on the host: the runtime env file (`chmod 600`), the
-  calling environment, or a Kubernetes `Secret`. Nothing secret is baked into
-  the image; the image ships the documented template
+- Secrets live only on the host or on the state volume: the runtime env file
+  (`chmod 600`), the calling environment, a Kubernetes `Secret`, or a
+  connected account (`opencode auth login`). Nothing secret is baked into the
+  image; the image ships the documented template
   (`/home/opencode/.env.example`) instead.
 - Every process in the container, including the agent, sees the forwarded
   variables. A forge token (`GH_TOKEN`, `GITLAB_TOKEN`, `FORGEJO_TOKEN`) is

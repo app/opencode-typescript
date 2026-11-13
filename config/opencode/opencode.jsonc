@@ -11,8 +11,9 @@
       "name": "OpenRouter",
       "package": "aisdk:@openrouter/ai-sdk-provider",
       "settings": {
-        // Substituted at runtime from the environment. Never put a literal
-        // key here: secrets live only on the host.
+        // Substituted at runtime from the environment (a stored account from
+        // `opencode auth login openrouter` wins over it). Never put a literal
+        // key here: secrets live only on the host or in a stored account.
         "apiKey": "{env:OPENROUTER_API_KEY}",
         "baseURL": "https://openrouter.ai/api/v1"
       },

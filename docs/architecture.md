@@ -22,7 +22,7 @@ Repository layout, the image, and the GitHub Actions pipeline.
 │   └── opencode/                     # copied to /home/opencode/.config/opencode
 │       ├── opencode.jsonc            # default model, OpenRouter, permissions, LSP
 │       ├── AGENTS.md                 # agent instructions (public, no personal data)
-│       └── skills/env-setup/SKILL.md # offers the env template when keys are missing
+│       └── skills/env-setup/SKILL.md # offers the env template when runtime variables are missing
 ├── k8s/
 │   ├── deployment.yaml
 │   ├── service.yaml
@@ -43,8 +43,9 @@ workflow; they are never hardcoded and are recorded as image labels
 The image bakes configuration, not secrets:
 
 - `config/opencode/` → `/home/opencode/.config/opencode/` (default model,
-  provider reading `{env:OPENROUTER_API_KEY}`, autonomous permissions, the
-  TypeScript LSP, the `env-setup` skill, the `AGENTS.md` policy);
+  provider reading `{env:OPENROUTER_API_KEY}` or a stored account,
+  autonomous permissions, the TypeScript LSP, the `env-setup` skill, the
+  `AGENTS.md` policy);
 - `config/gitconfig` → `/home/opencode/.gitconfig` (generic identity);
 - `.env.example` → `/home/opencode/.env.example` (the runtime env template);
 - `config/bin/entrypoint.sh` → `/usr/local/bin/entrypoint.sh` (git identity

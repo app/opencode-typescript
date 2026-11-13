@@ -67,11 +67,13 @@ image when a newer OpenCode is needed.
 ## Secrets
 
 Secrets (provider API keys, the server password, forge tokens) are passed at
-runtime through the environment. The runtime env template is baked into the
-image at `/home/opencode/.env.example`. When a required variable is missing or
-empty, use the `env-setup` skill to offer the user a copy of the template.
-Never write secrets into the repository, print them in output, or commit a
-`.env` file.
+runtime through the environment, or stored once by the user with
+`opencode auth login` (a stored account wins over the matching environment
+variable, for example over `OPENROUTER_API_KEY`). The runtime env template is
+baked into the image at `/home/opencode/.env.example`. When a required
+variable is missing or empty, use the `env-setup` skill to offer the user a
+copy of the template. Never write secrets into the repository, print them in
+output, commit a `.env` file, or run `opencode auth export`.
 
 ## sudo
 

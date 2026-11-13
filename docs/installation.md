@@ -41,11 +41,38 @@ runs.
 
 ## Provide the API key
 
-On the first run the agent detects the missing `OPENROUTER_API_KEY` and
-offers to create a `.env` file in your project directory from the template
-baked into the image (`/home/opencode/.env.example`). Fill in the key, keep
-the file private (`chmod 600 .env`, add `.env` to `.gitignore`), and pass it
-on the next run:
+The default model runs on OpenRouter, so a key is required before the first
+session. Two ways to provide it; when both are present, the stored account
+wins.
+
+### Option 1: connect an account (stored on the state volume)
+
+Podman:
+
+```bash
+podman run -it --rm --userns=keep-id \
+  -v opencode-state:/home/opencode/.local \
+  ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
+```
+
+Docker (the same, without `--userns=keep-id`):
+
+```bash
+docker run -it --rm \
+  -v opencode-state:/home/opencode/.local \
+  ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
+```
+
+The prompt asks for your OpenRouter API key and stores the credential in the
+`opencode-state` volume, so every later run works with the plain quick start
+command. Remove the stored key the same way, with
+`opencode auth logout openrouter`.
+
+### Option 2: environment variable
+
+Keep the key on the host: put it in a `.env` file (created from the template
+baked into the image at `/home/opencode/.env.example`, kept private with
+`chmod 600 .env` and added to `.gitignore`) and pass it on the run command:
 
 ```bash
 podman run -it --rm --userns=keep-id \

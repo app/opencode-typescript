@@ -1,6 +1,6 @@
 ---
 name: env-setup
-description: Offer to copy the runtime .env template when provider credentials or tokens are missing, and explain how to fill it in
+description: Offer to copy the runtime .env template when runtime variables such as forge tokens are missing, and explain how to fill it in
 ---
 
 # Env setup
@@ -14,12 +14,20 @@ The image ships a documented runtime env template at
 `/home/opencode/.env.example`. Values are passed at runtime only (`--env-file`
 or a Kubernetes Secret) and are never baked into the image.
 
+By the time the agent can answer, the OpenRouter key for the default model is
+usually already present: in the environment, or as a stored account from
+`opencode auth login openrouter`. If the OpenRouter key itself is missing or
+invalid, copying the template does not fix it: tell the user to run
+`opencode auth login openrouter` from the host (the key is stored on the
+`opencode-state` volume) or to update `OPENROUTER_API_KEY` and restart. Use
+this skill for the remaining variables.
+
 ## Check
 
 List which variables are currently set:
 
 ```sh
-env | grep -E '^(OPENROUTER_API_KEY|OPENCODE_PASSWORD|GH_TOKEN)=' || true
+env | grep -E '^(OPENROUTER_API_KEY|OPENCODE_PASSWORD|GH_TOKEN|GITLAB_TOKEN|FORGEJO_TOKEN)=' || true
 ```
 
 ## Actions
@@ -40,6 +48,7 @@ env | grep -E '^(OPENROUTER_API_KEY|OPENCODE_PASSWORD|GH_TOKEN)=' || true
      container again.
    - Kubernetes: update the `Secret` referenced by the Deployment and let
      the pod restart.
+
 4. Remind the user:
 
    - Add `.env` to `.gitignore`; never commit the file.
@@ -49,10 +58,14 @@ env | grep -E '^(OPENROUTER_API_KEY|OPENCODE_PASSWORD|GH_TOKEN)=' || true
 
 ## Variables
 
-| Variable | Purpose |
-| --- | --- |
-| `OPENROUTER_API_KEY` | API key for the default provider. Required for the default model. |
-| `OPENCODE_PASSWORD` | Password for the OpenCode server (HTTP API). Optional: when empty, the server generates one and prints it to the container log on start. |
-| `GH_TOKEN` | GitHub token for git over HTTPS and the `gh` CLI. Optional. |
-| `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL` | Author identity for git commits. Optional. |
-| `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` | Committer identity for git commits. Optional. |
+| Variable                                     | Purpose                                                                                                                                  |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENROUTER_API_KEY`                         | API key for the default provider. Required for the default model unless a stored account exists.                                         |
+| `OPENCODE_PASSWORD`                          | Password for the OpenCode server (HTTP API). Optional: when empty, the server generates one and prints it to the container log on start. |
+| `GH_TOKEN`                                   | GitHub token for git over HTTPS and the `gh` CLI. Optional.                                                                              |
+| `GITLAB_TOKEN`                               | GitLab token for git over HTTPS, the `glab` CLI and API calls. Optional.                                                                 |
+| `GITLAB_URL`                                 | Self-hosted GitLab host (default `https://gitlab.com`). Optional.                                                                        |
+| `FORGEJO_URL`                                | Forgejo/Gitea instance URL; required for `FORGEJO_TOKEN`. Optional.                                                                      |
+| `FORGEJO_TOKEN`                              | Forgejo/Gitea token for git and the REST API. Optional.                                                                                  |
+| `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL`       | Author identity for git commits. Optional.                                                                                               |
+| `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` | Committer identity for git commits. Optional.                                                                                            |

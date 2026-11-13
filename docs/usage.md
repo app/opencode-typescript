@@ -94,6 +94,11 @@ Secrets are never baked into the image; they are passed at runtime:
 -e OPENROUTER_API_KEY=...         # or individual variables
 ```
 
+The OpenRouter key can also be stored once with
+`opencode auth login openrouter` (see
+[Installation](installation.md#provide-the-api-key)); when both are present,
+the stored key wins.
+
 By convention the file lives in the project directory (`.env`); the optional
 [launcher](installation.md#the-launcher-optional) finds it on its own. The
 template documenting every variable lives in the repository root
@@ -102,7 +107,7 @@ Variable reference:
 
 | Variable                                     | Required            | Purpose                                                              |
 | -------------------------------------------- | ------------------- | -------------------------------------------------------------------- |
-| `OPENROUTER_API_KEY`                         | yes (default model) | API key for the default provider                                     |
+| `OPENROUTER_API_KEY`                         | yes (or stored key) | API key for the default provider                                     |
 | `OPENCODE_PASSWORD`                          | no (server mode)    | server password; when empty, one is generated and printed to the log |
 | `GH_TOKEN`                                   | no                  | GitHub token for git over HTTPS and the `gh` CLI                     |
 | `GITLAB_TOKEN`                               | no                  | GitLab token for git, the `glab` CLI and the API                     |
@@ -112,9 +117,9 @@ Variable reference:
 | `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL`       | no                  | author identity for commits                                          |
 | `GIT_COMMITTER_NAME` / `GIT_COMMITTER_EMAIL` | no                  | committer identity for commits                                       |
 
-Inside the container the agent detects missing variables and offers to copy
-the template into the working folder: see the `env-setup` skill. Never commit
-or print secrets; see [Security notes](security.md).
+When the agent is already running and a token or another variable is missing,
+it can offer to copy the template into the working folder (the `env-setup`
+skill). Never commit or print secrets; see [Security notes](security.md).
 
 ## Other commands
 

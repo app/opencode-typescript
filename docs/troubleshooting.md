@@ -10,7 +10,7 @@ Common errors and fixes.
   environment, so make sure it is set on the host (for example
   `xterm-256color`).
 - The TUI talks to the local process inside the container and needs no
-  password; if a provider error appears, check `OPENROUTER_API_KEY` (below).
+  password; if a provider error appears, check the OpenRouter key (below).
 - The default command is the TUI; if the container starts a server instead,
   either a custom command was passed (for example by the k8s manifest) or the
   local image is stale. `podman run` and `docker run` reuse a local image
@@ -42,13 +42,17 @@ Common errors and fixes.
 
 ## No model or provider errors
 
-- A 401/"missing API key" from OpenRouter means `OPENROUTER_API_KEY` is not
-  set in the container environment. Set it in the env file (or the
-  Kubernetes Secret) and restart the container with `--env-file` / the
-  updated Secret.
-- Inside the container, the `env-setup` skill offers to copy the template
-  from `/home/opencode/.env.example` into the working folder when variables
-  are missing.
+- A 401/"missing API key" from OpenRouter means the container has no OpenRouter
+  key: neither `OPENROUTER_API_KEY` in the environment nor a connected
+  account. Connect once with `opencode auth login openrouter` (the key is
+  stored on the `opencode-state` volume), or set the variable in the env file
+  (or the Kubernetes Secret) and restart with `--env-file` / the updated
+  Secret.
+- Without any key the TUI still opens, but the agent cannot answer: the
+  default model has nothing to talk to. This is expected, not a crash.
+- When the agent is running and another variable (for example a forge token)
+  is missing, the `env-setup` skill offers to copy the template from
+  `/home/opencode/.env.example` into the working folder.
 
 ## Git operations fail
 
