@@ -11,9 +11,11 @@ Common errors and fixes.
   `xterm-256color`).
 - The TUI talks to the local process inside the container and needs no
   password; if a provider error appears, check `OPENROUTER_API_KEY` (below).
-- The default command is the TUI; if the container starts a server instead, a
-  custom command was passed (for example by the k8s manifest or the smoke
-  test). Remove it.
+- The default command is the TUI; if the container starts a server instead,
+  either a custom command was passed (for example by the k8s manifest) or the
+  local image is stale. `podman run` and `docker run` reuse a local image
+  without re-pulling it: run
+  `podman pull ghcr.io/app/opencode-typescript:latest` and start again.
 
 ## The server does not respond (server mode)
 
