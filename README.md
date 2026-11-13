@@ -1,33 +1,10 @@
 # opencode-typescript
 
 A container image that runs [OpenCode](https://opencode.ai) for TypeScript
-development. GitHub Actions builds and publishes it to GHCR on every push and
-on a schedule, always with the current upstream versions (rolling latest). The
-image ships a TypeScript-focused toolchain: current Node LTS via mise,
-TypeScript, the TypeScript language server, Prettier, pnpm/yarn, git and the
-usual agent tooling, and a non-root user (uid 1000) with a restricted sudo
-policy.
-
-The default command is the interactive TUI: running the container from a
-project directory opens a session immediately, with no OpenCode installation
-on the host. The server (`opencode serve` on port 4096) is started explicitly,
-so the same image serves three kinds of users:
-
-- a human in the TUI — the image default;
-- a human in the web UI — server mode plus the pairing flow;
-- an external agent — server mode plus the HTTP API (Basic auth, username
-  `opencode`).
-
-Secrets (API keys, the server password, tokens) are host-side only: they are
-passed with the runtime env file or a Kubernetes Secret. The image ships a
-documented `.env.example` template, and a built-in agent skill offers to copy
-it into the working folder when credentials are missing.
+development. Nothing to install: one run command from your project directory
+and the agent is working — the TUI opens inside the container.
 
 ## Quick start
-
-Nothing to install: run the container from the project directory you want the
-agent to work in. The default command is the interactive TUI, and the image is
-pulled automatically on the first run:
 
 ```bash
 # Podman
@@ -45,10 +22,39 @@ docker run -it --rm \
 
 On the first run the agent offers to set up the OpenRouter API key: it writes
 a `.env` file into your project directory, you fill in the key, and the next
-run adds `--env-file .env` to the command. In server mode (web UI, HTTP API),
-pass `opencode serve --hostname 0.0.0.0 --port 4096` as the container command
-— see [Usage](docs/usage.md). Running OpenCode in Kubernetes: see
-[Kubernetes](docs/kubernetes.md).
+run adds `--env-file .env` to the command.
+
+## The image
+
+- **Rolling latest.** GitHub Actions builds and publishes the image to GHCR on
+  every push and on a schedule, always with the current upstream OpenCode and
+  Node LTS versions. Tags: `latest`,
+  `oc-<opencode-version>-node<node-version>`, `<YYYYMMDD>` — see
+  [Updating](docs/updating.md).
+- **TypeScript toolchain.** Current Node LTS via mise, TypeScript and the
+  TypeScript language server, Prettier, pnpm/yarn, git and the usual agent
+  tooling — see [Toolchain](docs/toolchain.md).
+- **Non-root.** The agent runs as uid 1000 with a restricted sudo policy.
+
+## Three kinds of users
+
+- A human in the TUI — the image default, as in the quick start above.
+- A human in the web UI — server mode plus the pairing flow.
+- An external agent — server mode plus the HTTP API (Basic auth, username
+  `opencode`).
+
+Server mode is an explicit command
+(`opencode serve --hostname 0.0.0.0 --port 4096`); see
+[Usage](docs/usage.md) and [Access](docs/api.md). Running OpenCode in
+Kubernetes: [Kubernetes](docs/kubernetes.md).
+
+## Secrets
+
+Secrets (API keys, the server password, tokens) are host-side only: they are
+passed with the runtime env file or a Kubernetes Secret. The image ships a
+documented `.env.example` template, and a built-in agent skill offers to copy
+it into the working folder when credentials are missing. See
+[Security notes](docs/security.md).
 
 ## Documentation
 
