@@ -25,9 +25,9 @@ kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
 ```
 
-The deployment runs the server as uid/gid 1000: the image default is the
-interactive TUI, so the manifest passes the server command explicitly in the
-container `args`. It keeps credentials and the session database on the
+The deployment pins the image's built-in user (uid/gid 1000): the image
+default is the interactive TUI, so the manifest passes the server command
+explicitly in the container `args`. It keeps credentials and the session database on the
 `opencode-state` PVC and mounts an `emptyDir` as the agent working space. It
 uses `Recreate` because a single writer owns the state volume.
 

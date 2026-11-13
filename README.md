@@ -11,7 +11,7 @@ From the project directory you want the agent to work in:
 Podman:
 
 ```bash
-podman run -it --rm --userns=keep-id \
+podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
@@ -20,14 +20,16 @@ podman run -it --rm --userns=keep-id \
 Docker (the same, without `--userns=keep-id`):
 
 ```bash
-docker run -it --rm \
+docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-The TUI opens on OpenCode's free built-in model — start typing, no key
-needed. For other models, connect OpenRouter with the TUI's `/connect`
+`--user "$(id -u):$(id -g)"` makes the agent run as your host user, so files
+it creates in the project keep your ownership (a no-op when your UID is
+already 1000). The TUI opens on OpenCode's free built-in model — start
+typing, no key needed. For other models, connect OpenRouter with the TUI's `/connect`
 command and pick a model in the model picker. See
 [Installation](docs/installation.md).
 
@@ -41,7 +43,8 @@ command and pick a model in the model picker. See
 - **TypeScript toolchain.** Current Node LTS via mise, TypeScript and the
   TypeScript language server, Prettier, pnpm/yarn, git and the usual agent
   tooling — see [Toolchain](docs/toolchain.md).
-- **Non-root.** The agent runs as uid 1000 with a restricted sudo policy.
+- **Non-root.** The agent runs as your host UID with a restricted sudo
+  policy.
 
 ## Three kinds of users
 
@@ -57,7 +60,7 @@ Kubernetes: [Kubernetes](docs/kubernetes.md).
 
 ## Security and secrets
 
-OpenCode runs as uid 1000 with a restricted sudo policy, so treat the
+OpenCode runs as your host UID with a restricted sudo policy, so treat the
 container as the security boundary. Secrets live only on the host or on the
 `opencode-state` volume: the runtime env file, the calling environment, a
 Kubernetes Secret, or a connected account. Nothing secret is baked into the

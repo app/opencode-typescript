@@ -8,7 +8,7 @@ container; nothing is installed on the host.
 The image default. From the project directory:
 
 ```bash
-podman run -it --rm --userns=keep-id \
+podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest

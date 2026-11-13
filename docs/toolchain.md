@@ -60,8 +60,8 @@ Do not install packages into the system interpreter with `pip`.
 
 ## Installing extra packages
 
-The `opencode` user has passwordless sudo, so the agent can install Alpine
-packages when a task needs them:
+The user the container runs as has passwordless sudo (the policy matches
+any user), so the agent can install Alpine packages when a task needs them:
 
 ```bash
 sudo apk add --no-cache <package>

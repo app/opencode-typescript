@@ -8,7 +8,7 @@ Repository layout, the image, and the GitHub Actions pipeline.
 .
 ├── AGENTS.md                         # instructions for agents working on this repository
 ├── bin/opencode-ts                   # launcher: thin wrapper over podman/docker
-├── Containerfile                     # OpenCode image + toolchain, non-root uid 1000
+├── Containerfile                     # OpenCode image + toolchain, built-in non-root user (uid 1000)
 ├── .env.example                      # runtime env template (copied into the image)
 ├── versions.json                     # pinned toolchain versions (updated by the bot PR)
 ├── .github/workflows/build.yml       # build, publish, smoke test, pin updates
@@ -18,7 +18,7 @@ Repository layout, the image, and the GitHub Actions pipeline.
 │   ├── bin/entrypoint.sh             # git identity, forge credentials, cd into the project, exec "$@"
 │   ├── gitconfig                     # generic gitconfig for the non-root user
 │   ├── mise/config.toml              # mise settings (musl, slow-mirror timeouts)
-│   ├── sudoers.d/opencode            # passwordless sudo policy
+│   ├── sudoers.d/opencode            # passwordless sudo policy (any user in the container)
 │   └── opencode/                     # copied to /home/opencode/.config/opencode
 │       ├── opencode.jsonc            # permissions, LSP (no model or provider pinned)
 │       ├── AGENTS.md                 # agent instructions (public, no personal data)
@@ -36,8 +36,13 @@ Repository layout, the image, and the GitHub Actions pipeline.
 `Containerfile` extends `ghcr.io/anomalyco/opencode:<version>` with the
 [toolchain](toolchain.md) and a non-root `opencode` user (uid/gid 1000 by
 default, overridable with `--build-arg UID=... --build-arg GID=...`). The
-upstream version and the Node LTS version are build args supplied by the
-workflow; they are never hardcoded and are recorded as image labels
+documented run commands override the user at runtime with
+`--user "$(id -u):$(id -g)"` so that files created by the agent keep host
+ownership; the home and mise directories are world-writable inside the
+image so that any user the container runs as can write to them (the
+container is a single-user trust boundary). The upstream version and the
+Node LTS version are build args supplied by the workflow; they are never
+hardcoded and are recorded as image labels
 (`org.opencode-typescript.opencode`, `org.opencode-typescript.node`).
 
 The image bakes configuration, not secrets:

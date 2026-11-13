@@ -66,8 +66,11 @@ Common errors and fixes.
   Check that the token for the host you push to is set.
 - Commits are signed with the `GIT_AUTHOR_*` / `GIT_COMMITTER_*` variables or
   the baked generic identity; set the variables in the env file.
-- If the repository is owned by a different host user, use
-  `--userns=keep-id` (Podman) or `--user $(id -u):$(id -g)` (Docker).
+- Permission denied on files in the project (the agent cannot create, edit
+  or commit): the run command must carry `--user "$(id -u):$(id -g)"` so the
+  agent runs as your host user (every command in [Usage](usage.md) includes
+  it). A state volume created by an older image needs a one-time removal
+  first (Usage, Mounts).
 
 ## Node version problems in the project
 

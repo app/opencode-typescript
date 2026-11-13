@@ -83,7 +83,8 @@ PROJECT_DIR="$(realpath "${OPENCODE_TS_PROJECT:-$PWD}")"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
 STATE_VOLUME="${OPENCODE_TS_STATE:-opencode-state}"
 
-# Container paths. The image runs as uid 1000 with this home directory.
+# Container paths. The image's built-in user is uid 1000 with this home
+# directory; the run command below overrides the user with the host UID.
 CONTAINER_HOME="/home/opencode"
 CONTAINER_PROJECT="${CONTAINER_HOME}/projects/${PROJECT_NAME}"
 
@@ -176,13 +177,16 @@ for path in ${RO_PATHS[@]+"${RO_PATHS[@]}"}; do
 done
 
 # --- Run -----------------------------------------------------------------------
-# podman maps the container uid 1000 to the host user, so files created in
-# the project keep the host ownership. docker has no equivalent; files
-# created in the container are owned by uid 1000 on the host.
+# The agent runs as the host user (--user $(id -u):$(id -g)), so files
+# created in the project keep host ownership on both engines; on podman
+# --userns=keep-id additionally maps the host user into the container
+# namespace. The flag is a no-op when the host UID is 1000, the image's
+# built-in user.
 ENGINE_ARGS=()
 if [[ "$ENGINE" == "podman" ]]; then
   ENGINE_ARGS+=(--userns=keep-id)
 fi
+ENGINE_ARGS+=(--user "$(id -u):$(id -g)")
 # Extra raw engine arguments (for example -p 4096:4096 for server mode).
 if [[ -n "${OPENCODE_TS_RUN_ARGS:-}" ]]; then
   read -ra ENGINE_ARGS_EXTRA <<<"${OPENCODE_TS_RUN_ARGS}"

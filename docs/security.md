@@ -2,12 +2,16 @@
 
 ## Trust model
 
-- OpenCode runs as the non-root user `opencode` (uid/gid 1000) with
-  passwordless sudo. The sudo policy is broad by design (`NOPASSWD: ALL`) and
-  constrained by the usage rules in the baked `AGENTS.md`; container root
-  maps to a subuid on the host (rootless Podman) or to root in the pod
-  (Kubernetes). Treat the container as the security boundary: the agent can
-  effectively do anything the container can.
+- OpenCode runs as the user of the calling session: the documented run
+  commands pass `--user "$(id -u):$(id -g)"`, so by default it is your host
+  UID (the image's built-in user is uid/gid 1000, used for example by the
+  k8s manifest). The session user has passwordless sudo; the policy is broad
+  by design (`NOPASSWD: ALL`) and constrained by the usage rules in the
+  baked `AGENTS.md`. The home and mise directories are world-writable inside
+  the image so any `--user` can write to them. Container root maps to a
+  subuid on the host (rootless Podman) or to root in the pod (Kubernetes).
+  Treat the container as the security boundary: the agent can effectively do
+  anything the container can.
 - The baked permissions allow the agent to `edit` files, run `shell`
   commands, and `webfetch` URLs without prompts, so it works autonomously.
   Only mount projects and tokens the agent is allowed to touch.

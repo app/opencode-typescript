@@ -10,7 +10,7 @@ project directory:
 Podman:
 
 ```bash
-podman run -it --rm --userns=keep-id \
+podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
@@ -19,7 +19,7 @@ podman run -it --rm --userns=keep-id \
 Docker (the same, without `--userns=keep-id`):
 
 ```bash
-docker run -it --rm \
+docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   ghcr.io/app/opencode-typescript:latest
@@ -38,7 +38,7 @@ wraps exactly this.
 Server mode is an explicit command on top of the same image:
 
 ```bash
-podman run -d --name opencode --userns=keep-id -p 4096:4096 \
+podman run -d --name opencode --userns=keep-id --user "$(id -u):$(id -g)" -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   --env-file .env \
@@ -76,10 +76,16 @@ is available under Basic auth on the same port.
 | your project directory  | `/home/opencode/projects/<name>` | the agent's working project; OpenCode starts inside it when it is the only mount |
 | `opencode-state` volume | `/home/opencode/.local`          | credentials and the session database                                             |
 
-- Use `--userns=keep-id` with Podman so files created in the project keep your
-  host ownership. With Docker, match the container user to your host UID if
-  ownership matters: `--user "$(id -u):$(id -g)"` (the image runs as 1000 by
-  default).
+- `--user "$(id -u):$(id -g)"` (in every command above) makes the agent run
+  as your host user, so files it creates — in the project and on the state
+  volume — keep your ownership. It is a no-op when your UID is 1000, the
+  image's built-in user. With Podman it works together with
+  `--userns=keep-id`, which maps your host UID into the container
+  namespace.
+- If the state volume was created by an older image (files owned by uid
+  1000), a different UID cannot write to it: remove the volume once
+  (`podman volume rm opencode-state`, or the Docker equivalent) and start
+  again. Stored credentials are re-added with `/connect`.
 - Mount sibling projects read-only with extra `-v` mounts under
   `/home/opencode/projects/`, for example
   `-v ../frontend:/home/opencode/projects/frontend:ro` (the launcher's
@@ -130,7 +136,7 @@ The entrypoint execs the command you pass, so any other opencode command or a
 shell works — append it to the run command:
 
 ```bash
-podman run -it --rm --userns=keep-id \
+podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   ghcr.io/app/opencode-typescript:latest \
   opencode run "Explain this repository"
