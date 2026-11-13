@@ -36,7 +36,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: opencode
-          image: ghcr.io/<owner>/opencode-typescript:latest
+          image: ghcr.io/app/opencode-typescript:latest
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

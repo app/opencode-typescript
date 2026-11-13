@@ -17,8 +17,8 @@ server.
 The image is published to GHCR by the GitHub Actions workflow:
 
 ```bash
-podman pull ghcr.io/<owner>/opencode-typescript:latest
-docker pull ghcr.io/<owner>/opencode-typescript:latest
+podman pull ghcr.io/app/opencode-typescript:latest
+docker pull ghcr.io/app/opencode-typescript:latest
 ```
 
 Tags: `latest`, `oc-<opencode-version>-node<node-version>` (the exact toolchain
@@ -49,7 +49,7 @@ podman run -d --name opencode --userns=keep-id -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   --env-file "$HOME/.config/opencode-container/env" \
-  ghcr.io/<owner>/opencode-typescript:latest
+  ghcr.io/app/opencode-typescript:latest
 ```
 
 The same command works with `docker run` (drop `--userns=keep-id`). The

@@ -30,7 +30,7 @@ or `workflow_dispatch`) and rebuilds the image.
 Run the version that was current when you read the docs, or pin:
 
 ```bash
-docker pull ghcr.io/<owner>/opencode-typescript:oc-2.3.0-node26.13.1
+docker pull ghcr.io/app/opencode-typescript:oc-2.3.0-node26.13.1
 ```
 
 `docker image inspect` prints the pinned versions from the image labels.

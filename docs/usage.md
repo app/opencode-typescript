@@ -17,7 +17,7 @@ podman run -d --name opencode --userns=keep-id -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state:/home/opencode/.local \
   --env-file "$HOME/.config/opencode-container/env" \
-  ghcr.io/<owner>/opencode-typescript:latest
+  ghcr.io/app/opencode-typescript:latest
 ```
 
 Connect a TUI client from the host with
@@ -73,10 +73,10 @@ and interactive use:
 # One-shot prompt, no server
 docker run --rm -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   --env-file "$HOME/.config/opencode-container/env" \
-  ghcr.io/<owner>/opencode-typescript:latest opencode run "Explain this repository"
+  ghcr.io/app/opencode-typescript:latest opencode run "Explain this repository"
 
 # Interactive shell as the opencode user
-docker run -it --rm ghcr.io/<owner>/opencode-typescript:latest bash
+docker run -it --rm ghcr.io/app/opencode-typescript:latest bash
 ```
 
 ## Logs

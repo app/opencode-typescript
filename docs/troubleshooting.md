@@ -52,7 +52,7 @@ Common errors and fixes.
 
 ## The image looks stale
 
-- Pull the tag you expect: `docker pull ghcr.io/<owner>/opencode-typescript:latest`
+- Pull the tag you expect: `docker pull ghcr.io/app/opencode-typescript:latest`
   and compare the labels with the current pins in `versions.json`.
 - To force a new build without waiting for the schedule, run the
   `Build` workflow from the repository's Actions page.

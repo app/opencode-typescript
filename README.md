@@ -31,7 +31,7 @@ $EDITOR ~/.config/opencode-container/env          # set OPENROUTER_API_KEY
 podman run -d --name opencode --userns=keep-id -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   --env-file "$HOME/.config/opencode-container/env" \
-  ghcr.io/<owner>/opencode-typescript:latest
+  ghcr.io/app/opencode-typescript:latest
 
 # 3. Connect an OpenCode client (TUI) from the host
 opencode --server http://localhost:4096
