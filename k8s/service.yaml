@@ -1,0 +1,16 @@
+# Service exposing the OpenCode server. ClusterIP suits in-cluster agents
+# and forwarded ports; switch type to LoadBalancer for external access.
+apiVersion: v1
+kind: Service
+metadata:
+  name: opencode
+  labels:
+    app: opencode
+spec:
+  type: ClusterIP
+  selector:
+    app: opencode
+  ports:
+    - name: http
+      port: 4096
+      targetPort: http

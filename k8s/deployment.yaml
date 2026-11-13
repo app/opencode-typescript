@@ -1,0 +1,93 @@
+# Example deployment of the OpenCode server in Kubernetes.
+#
+# Prerequisites (see docs/kubernetes.md for the full setup):
+# - a pull secret for ghcr.io:
+#     kubectl create secret docker-registry ghcr-pull \
+#       --docker-server=https://ghcr.io \
+#       --docker-username=<you> --docker-password=<ghcr-token>
+# - the runtime Secret (see secret.example.yaml) applied to the namespace.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencode
+  labels:
+    app: opencode
+spec:
+  replicas: 1
+  # A single writer owns the state volume.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: opencode
+  template:
+    metadata:
+      labels:
+        app: opencode
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: opencode
+          image: ghcr.io/<owner>/opencode-typescript:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          ports:
+            - name: http
+              containerPort: 4096
+          # Secrets and the git identity come from the runtime Secret.
+          envFrom:
+            - secretRef:
+                name: opencode
+          # The HTTP API requires Basic auth, which probes cannot send;
+          # check that the listener is up instead.
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+          volumeMounts:
+            # Credentials and the session database survive pod restarts.
+            - name: state
+              mountPath: /home/opencode/.local
+            # The agent working space; replace with a PersistentVolumeClaim
+            # or a projected volume when the project must persist.
+            - name: project
+              mountPath: /home/opencode/projects
+      volumes:
+        - name: state
+          persistentVolumeClaim:
+            claimName: opencode-state
+        - name: project
+          emptyDir: {}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opencode-state
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
