@@ -36,13 +36,14 @@ Repository layout, the image, and the GitHub Actions pipeline.
 `Containerfile` extends `ghcr.io/anomalyco/opencode:<version>` with the
 [toolchain](toolchain.md) and a non-root `opencode` user (uid/gid 1000 by
 default, overridable with `--build-arg UID=... --build-arg GID=...`). The
-documented run commands override the user at runtime with
-`--user "$(id -u):$(id -g)"` so that files created by the agent keep host
-ownership; the home and mise directories are world-writable inside the
-image so that any user the container runs as can write to them (the
-container is a single-user trust boundary). The upstream version and the
-Node LTS version are build args supplied by the workflow; they are never
-hardcoded and are recorded as image labels
+documented run commands make the image's user the caller's: Podman maps it
+onto the host user with `--userns=keep-id:uid=1000,gid=1000`, Docker
+overrides it with `--user "$(id -u):$(id -g)"`, so files created by the agent
+keep host ownership either way. The home and mise directories are
+world-writable inside the image so that any user the container runs as can
+write to them (the container is a single-user trust boundary). The upstream
+version and the Node LTS version are build args supplied by the workflow;
+they are never hardcoded and are recorded as image labels
 (`org.opencode-typescript.opencode`, `org.opencode-typescript.node`).
 
 The image bakes configuration, not secrets:

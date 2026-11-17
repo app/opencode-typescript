@@ -75,7 +75,8 @@ RUN echo "Installing Alpine packages..." \
 
 # Passwordless sudo lets the agent install Alpine packages for the current
 # session, whatever UID the container runs as (run commands pass
-# --user). The usage policy lives in config/opencode/AGENTS.md.
+# --user or --userns=keep-id:uid=1000,gid=1000). The usage policy lives in
+# config/opencode/AGENTS.md.
 COPY config/sudoers.d/opencode /etc/sudoers.d/opencode
 RUN chmod 0440 /etc/sudoers.d/opencode && visudo -cf /etc/sudoers
 
@@ -129,12 +130,13 @@ COPY --chown=${UID}:${GID} .env.example /home/opencode/.env.example
 COPY --chown=root:root config/bin/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod 0755 /usr/local/bin/entrypoint.sh
 
-# Run commands pass `--user "$(id -u):$(id -g)"` so that files created by
-# the agent keep host ownership. Whatever UID the container runs as must
-# therefore be able to write everywhere the agent writes: the home
-# directory (baked config, the state volume initialization source, caches)
-# and the mise data directory are world-writable. The container is a
-# single-user trust boundary, so this does not widen the real exposure.
+# Run commands make the image's user the host user (Podman:
+# --userns=keep-id:uid=1000,gid=1000, Docker: --user $(id -u):$(id -g)), so
+# files created by the agent keep host ownership. Whatever UID the container
+# runs as must therefore be able to write everywhere the agent writes: the
+# home directory (baked config, the state volume initialization source,
+# caches) and the mise data directory are world-writable. The container is
+# a single-user trust boundary, so this does not widen the real exposure.
 RUN chmod -R a+rwX /home/opencode /opt/mise
 
 USER ${UID}:${GID}

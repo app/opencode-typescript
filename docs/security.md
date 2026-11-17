@@ -2,15 +2,16 @@
 
 ## Trust model
 
-- OpenCode runs as the user of the calling session: the documented run
-  commands pass `--user "$(id -u):$(id -g)"`, so by default it is your host
-  UID (the image's built-in user is uid/gid 1000, used for example by the
-  k8s manifest). The session user has passwordless sudo; the policy is broad
-  by design (`NOPASSWD: ALL`) and constrained by the usage rules in the
-  baked `AGENTS.md`. The home and mise directories are world-writable inside
-  the image so any `--user` can write to them. Container root maps to a
-  subuid on the host (rootless Podman) or to root in the pod (Kubernetes).
-  Treat the container as the security boundary: the agent can effectively do
+- OpenCode never runs as root: in every documented mode it is the image's
+  built-in user, uid/gid 1000 (Podman maps it onto your host user with
+  `--userns=keep-id:uid=1000,gid=1000`; Docker runs it as your host UID with
+  `--user "$(id -u):$(id -g)"`; the k8s manifest pins `runAsUser: 1000`).
+  That user has passwordless sudo; the policy is broad by design
+  (`NOPASSWD: ALL`) and constrained by the usage rules in the baked
+  `AGENTS.md`. The home and mise directories are world-writable inside the
+  image so any `--user` can write to them. Container root maps to a subuid
+  on the host (rootless Podman) or to root in the pod (Kubernetes). Treat
+  the container as the security boundary: the agent can effectively do
   anything the container can.
 - The baked permissions allow the agent to `edit` files, run `shell`
   commands, and `webfetch` URLs without prompts, so it works autonomously.

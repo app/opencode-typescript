@@ -10,14 +10,14 @@ project directory:
 Podman:
 
 ```bash
-podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
+podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-Docker (the same, without `--userns=keep-id`):
+Docker (the same, with `--user` instead of `--userns`):
 
 ```bash
 docker run -it --rm --user "$(id -u):$(id -g)" \
@@ -40,7 +40,7 @@ wraps exactly this.
 Server mode is an explicit command on top of the same image:
 
 ```bash
-podman run -d --name opencode --userns=keep-id --user "$(id -u):$(id -g)" -p 4096:4096 \
+podman run -d --name opencode --userns=keep-id:uid=1000,gid=1000 -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --env-file .env \
@@ -48,8 +48,8 @@ podman run -d --name opencode --userns=keep-id --user "$(id -u):$(id -g)" -p 409
   opencode serve --hostname 0.0.0.0 --port 4096
 ```
 
-The same works with Docker (without `--userns=keep-id`); drop `-d` and add
-`-it` for a foreground run. The [launcher](installation.md#the-launcher-optional)
+The same works with Docker (with `--user "$(id -u):$(id -g)"` instead of
+`--userns`); drop `-d` and add `-it` for a foreground run. The [launcher](installation.md#the-launcher-optional)
 equivalent is `OPENCODE_TS_RUN_ARGS="-p 4096:4096" opencode-ts serve
 --hostname 0.0.0.0 --port 4096`.
 
@@ -78,12 +78,12 @@ is available under Basic auth on the same port.
 | your project directory         | `/home/opencode/projects/<name>` | the agent's working project; OpenCode starts inside it when it is the only mount |
 | `opencode-state-<user>` volume | `/home/opencode/.local`          | credentials and the session database, one per user                               |
 
-- `--user "$(id -u):$(id -g)"` (in every command above) makes the agent run
-  as your host user, so files it creates — in the project and on the state
-  volume — keep your ownership. It is a no-op when your UID is 1000, the
-  image's built-in user. With Podman it works together with
-  `--userns=keep-id`, which maps your host UID into the container
-  namespace.
+- User mapping: `--userns=keep-id:uid=1000,gid=1000` (Podman) runs the agent
+  as the image's built-in user, uid/gid 1000, mapped onto your host user, so
+  files it creates — in the project and on the state volume — are uid 1000 in
+  the container and yours on the host. Docker has no user mapping, so its
+  commands pass `--user "$(id -u):$(id -g)"` instead, which runs the agent as
+  your host UID with the same ownership outcome.
 - `--detach-keys="ctrl-],ctrl-q"` (in every command above) moves the
   engine's detach sequence off the default `ctrl-p ctrl-q`, which would
   swallow the TUI's `ctrl-p` command palette key.
@@ -143,7 +143,7 @@ The entrypoint execs the command you pass, so any other opencode command or a
 shell works — append it to the run command:
 
 ```bash
-podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
+podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest \

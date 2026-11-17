@@ -85,7 +85,8 @@ PROJECT_NAME="$(basename "$PROJECT_DIR")"
 STATE_VOLUME="${OPENCODE_TS_STATE:-opencode-state-$(id -un)}"
 
 # Container paths. The image's built-in user is uid 1000 with this home
-# directory; the run command below overrides the user with the host UID.
+# directory; the run command below maps that user onto the host user
+# (podman) or runs it as the host UID (docker).
 CONTAINER_HOME="/home/opencode"
 CONTAINER_PROJECT="${CONTAINER_HOME}/projects/${PROJECT_NAME}"
 
@@ -178,18 +179,19 @@ for path in ${RO_PATHS[@]+"${RO_PATHS[@]}"}; do
 done
 
 # --- Run -----------------------------------------------------------------------
-# The agent runs as the host user (--user $(id -u):$(id -g)), so files
-# created in the project keep host ownership on both engines; on podman
-# --userns=keep-id additionally maps the host user into the container
-# namespace. The flag is a no-op when the host UID is 1000, the image's
-# built-in user. The detach keys are overridden because the engines'
-# default sequence (ctrl-p,ctrl-q) would swallow the TUI's ctrl-p
-# command palette key.
+# The agent runs as the image's built-in user (uid 1000). On podman it is
+# mapped onto the host user (--userns=keep-id:uid=1000,gid=1000), so files
+# created in the project are uid 1000 in the container and host-owned on
+# the host; docker has no user mapping, so it passes --user with the host
+# UID instead. The detach keys are overridden because the engines' default
+# sequence (ctrl-p,ctrl-q) would swallow the TUI's ctrl-p command palette
+# key.
 ENGINE_ARGS=()
 if [[ "$ENGINE" == "podman" ]]; then
-  ENGINE_ARGS+=(--userns=keep-id)
+  ENGINE_ARGS+=("--userns=keep-id:uid=1000,gid=1000")
+else
+  ENGINE_ARGS+=(--user "$(id -u):$(id -g)")
 fi
-ENGINE_ARGS+=(--user "$(id -u):$(id -g)")
 # Extra raw engine arguments (for example -p 4096:4096 for server mode).
 if [[ -n "${OPENCODE_TS_RUN_ARGS:-}" ]]; then
   read -ra ENGINE_ARGS_EXTRA <<<"${OPENCODE_TS_RUN_ARGS}"

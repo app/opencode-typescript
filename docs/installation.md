@@ -7,8 +7,9 @@ so no OpenCode client is needed on the host.
 ## Requirements
 
 - [Docker](https://www.docker.com/) or [rootless Podman](https://podman.io/).
-  For Podman, enable subuid mappings so `--userns=keep-id` works
-  (`subuid`/`subgid` entries in `/etc/subuid` and `/etc/subgid`).
+  For Podman, enable subuid mappings so the
+  `--userns=keep-id:uid=1000,gid=1000` flag works (`subuid`/`subgid` entries
+  in `/etc/subuid` and `/etc/subgid`).
 - Nothing else: OpenCode's free built-in models work without any account or
   key. An [OpenRouter](https://openrouter.ai/) API key is optional — see
   [More models](#more-models-optional).
@@ -20,14 +21,14 @@ From the project directory you want the agent to work in:
 Podman:
 
 ```bash
-podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
+podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-Docker (the same, without `--userns=keep-id`):
+Docker (the same, with `--user` instead of `--userns`):
 
 ```bash
 docker run -it --rm --user "$(id -u):$(id -g)" \
@@ -37,8 +38,10 @@ docker run -it --rm --user "$(id -u):$(id -g)" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-`--user "$(id -u):$(id -g)"` makes the agent run as your host user, so files
-it creates keep your ownership (a no-op when your UID is 1000).
+`--userns=keep-id:uid=1000,gid=1000` (Podman) maps the image's built-in user
+(uid 1000) onto your host user, so files the agent creates are uid 1000 in
+the container and yours on the host; the Docker command passes `--user
+"$(id -u):$(id -g)"` instead, running the agent as your host UID directly.
 
 The TUI opens inside the container; the project is mounted read-write at
 `/home/opencode/projects/<name>` and OpenCode starts inside it, so the
@@ -61,15 +64,15 @@ has the models. The same credential can be stored from the host without the
 TUI:
 
 ```bash
-podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
+podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
 ```
 
-The same works with Docker (without `--userns=keep-id`). Remove the stored
-key the same way, with `opencode auth logout openrouter` in place of
-`auth login openrouter`.
+The same works with Docker (with `--user "$(id -u):$(id -g)"` instead of
+`--userns`). Remove the stored key the same way, with `opencode auth logout
+openrouter` in place of `auth login openrouter`.
 
 ### Option 2: environment file
 
@@ -81,7 +84,7 @@ current folder, which is on the host), or copy
 `.gitignore`, and pass it on the run command:
 
 ```bash
-podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
+podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
@@ -89,8 +92,8 @@ podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-The same works with Docker (without `--userns=keep-id`). See
-[Security notes](security.md) for how secrets are handled.
+The same works with Docker (with `--user "$(id -u):$(id -g)"` instead of
+`--userns`). See [Security notes](security.md) for how secrets are handled.
 
 Either way, the OpenRouter models then appear in the TUI's model picker —
 pick the one you want to work with; the pick is remembered on the

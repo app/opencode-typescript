@@ -74,10 +74,11 @@ Common errors and fixes.
 - Commits are signed with the `GIT_AUTHOR_*` / `GIT_COMMITTER_*` variables or
   the baked generic identity; set the variables in the env file.
 - Permission denied on files in the project (the agent cannot create, edit
-  or commit): the run command must carry `--user "$(id -u):$(id -g)"` so the
-  agent runs as your host user (every command in [Usage](usage.md) includes
-  it). A state volume created by an older image needs a one-time removal
-  first (Usage, Mounts).
+  or commit): the run command must carry the user mapping —
+  `--userns=keep-id:uid=1000,gid=1000` (Podman) or `--user "$(id -u):$(id -g)"`
+  (Docker), so files it writes are owned by your host user (every command in
+  [Usage](usage.md) includes it). A state volume created by an older image
+  needs a one-time removal first (Usage, Mounts).
 
 ## Node version problems in the project
 

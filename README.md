@@ -11,14 +11,14 @@ From the project directory you want the agent to work in:
 Podman:
 
 ```bash
-podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
+podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-Docker (the same, without `--userns=keep-id`):
+Docker (the same, with `--user` instead of `--userns`):
 
 ```bash
 docker run -it --rm --user "$(id -u):$(id -g)" \
@@ -28,10 +28,12 @@ docker run -it --rm --user "$(id -u):$(id -g)" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-`--user "$(id -u):$(id -g)"` makes the agent run as your host user, so files
-it creates in the project keep your ownership (a no-op when your UID is
-already 1000). `--detach-keys` moves the engine's default `ctrl-p ctrl-q`
-detach sequence elsewhere, so the TUI's `ctrl-p` command palette works.
+`--userns=keep-id:uid=1000,gid=1000` (Podman) runs the agent as the image's
+built-in user, uid 1000, mapped onto your host user: files it creates are uid
+1000 in the container and yours on the host. Docker has no user mapping, so
+its command uses `--user "$(id -u):$(id -g)"` instead. `--detach-keys` moves
+the engine's default `ctrl-p ctrl-q` detach sequence elsewhere, so the TUI's
+`ctrl-p` command palette works.
 State (sessions, connected accounts) is kept in the per-user
 volume `opencode-state-<user>`, so users of a shared machine do not share
 it. The TUI opens on OpenCode's free built-in model — start typing, no key
@@ -49,8 +51,9 @@ command and pick a model in the model picker. See
 - **TypeScript toolchain.** Current Node LTS via mise, TypeScript and the
   TypeScript language server, Prettier, pnpm/yarn, git and the usual agent
   tooling — see [Toolchain](docs/toolchain.md).
-- **Non-root.** The agent runs as your host UID with a restricted sudo
-  policy.
+- **Non-root.** The agent never runs as root: on Podman it is the image's
+  uid 1000 mapped onto your host user, on Docker your host UID, with a
+  restricted sudo policy.
 
 ## Three kinds of users
 
@@ -66,7 +69,8 @@ Kubernetes: [Kubernetes](docs/kubernetes.md).
 
 ## Security and secrets
 
-OpenCode runs as your host UID with a restricted sudo policy, so treat the
+OpenCode runs unprivileged (uid 1000 mapped onto your host user on Podman,
+your host UID on Docker) with a restricted sudo policy, so treat the
 container as the security boundary. Secrets live only on the host or on the
 `opencode-state-<user>` volume: the runtime env file, the calling environment, a
 Kubernetes Secret, or a connected account. Nothing secret is baked into the
