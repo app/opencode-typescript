@@ -20,6 +20,12 @@ Common errors and fixes.
   is expected when several projects are mounted (or none). Open a specific
   project by appending its directory to the run command:
   `opencode /home/opencode/projects/<name>`.
+- `ctrl-p` (the command palette) does nothing: your run command lacks
+  `--detach-keys="ctrl-],ctrl-q"`. The default detach sequence of
+  podman/docker is `ctrl-p ctrl-q`, so the engine waits for `ctrl-q` and
+  the key never reaches the TUI. Every command in this repository carries
+  the flag; alternatively set `detachKeys` in your engine's client config
+  file.
 
 ## The server does not respond (server mode)
 

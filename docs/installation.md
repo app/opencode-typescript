@@ -23,6 +23,7 @@ Podman:
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -32,6 +33,7 @@ Docker (the same, without `--userns=keep-id`):
 docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -61,6 +63,7 @@ TUI:
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
 ```
 
@@ -81,6 +84,7 @@ current folder, which is on the host), or copy
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   --env-file .env \
   ghcr.io/app/opencode-typescript:latest
 ```

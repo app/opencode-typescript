@@ -14,6 +14,7 @@ Podman:
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -23,12 +24,15 @@ Docker (the same, without `--userns=keep-id`):
 docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
 `--user "$(id -u):$(id -g)"` makes the agent run as your host user, so files
 it creates in the project keep your ownership (a no-op when your UID is
-already 1000). State (sessions, connected accounts) is kept in the per-user
+already 1000). `--detach-keys` moves the engine's default `ctrl-p ctrl-q`
+detach sequence elsewhere, so the TUI's `ctrl-p` command palette works.
+State (sessions, connected accounts) is kept in the per-user
 volume `opencode-state-<user>`, so users of a shared machine do not share
 it. The TUI opens on OpenCode's free built-in model — start typing, no key
 needed. For other models, connect OpenRouter with the TUI's `/connect`

@@ -182,7 +182,9 @@ done
 # created in the project keep host ownership on both engines; on podman
 # --userns=keep-id additionally maps the host user into the container
 # namespace. The flag is a no-op when the host UID is 1000, the image's
-# built-in user.
+# built-in user. The detach keys are overridden because the engines'
+# default sequence (ctrl-p,ctrl-q) would swallow the TUI's ctrl-p
+# command palette key.
 ENGINE_ARGS=()
 if [[ "$ENGINE" == "podman" ]]; then
   ENGINE_ARGS+=(--userns=keep-id)
@@ -197,6 +199,7 @@ fi
 exec "$ENGINE" run --interactive --tty --rm \
   --name "opencode-ts-${PROJECT_NAME}-$$" \
   --init \
+  --detach-keys "ctrl-],ctrl-q" \
   ${ENGINE_ARGS[@]+"${ENGINE_ARGS[@]}"} \
   "${ENVS[@]}" \
   --workdir "$CONTAINER_PROJECT" \

@@ -13,6 +13,7 @@ Podman:
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -22,6 +23,7 @@ Docker (the same, without `--userns=keep-id`):
 docker run -it --rm --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -57,13 +59,13 @@ running container:
 Podman:
 
 ```bash
-podman exec -it opencode opencode pair
+podman exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
 ```
 
 Docker:
 
 ```bash
-docker exec -it opencode opencode pair
+docker exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
 ```
 
 and open the printed link in a browser. The [HTTP API](api.md#http-api-agents)
@@ -82,6 +84,9 @@ is available under Basic auth on the same port.
   image's built-in user. With Podman it works together with
   `--userns=keep-id`, which maps your host UID into the container
   namespace.
+- `--detach-keys="ctrl-],ctrl-q"` (in every command above) moves the
+  engine's detach sequence off the default `ctrl-p ctrl-q`, which would
+  swallow the TUI's `ctrl-p` command palette key.
 - If you used an earlier version of this image, its state lived in a single
   shared volume, `opencode-state` (with permissions only uid 1000 could
   write). The commands above now use one volume per user,
@@ -140,6 +145,7 @@ shell works — append it to the run command:
 ```bash
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest \
   opencode run "Explain this repository"
 ```

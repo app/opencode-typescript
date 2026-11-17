@@ -11,6 +11,7 @@ The image default. From the project directory:
 podman run -it --rm --userns=keep-id --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
+  --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
@@ -26,13 +27,13 @@ To sign in, create a pairing link from inside the running container:
 Podman:
 
 ```bash
-podman exec -it opencode opencode pair
+podman exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
 ```
 
 Docker:
 
 ```bash
-docker exec -it opencode opencode pair
+docker exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
 ```
 
 Open the printed link in a browser (the port must be published,
