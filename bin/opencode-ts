@@ -199,7 +199,7 @@ if [[ -n "${OPENCODE_TS_RUN_ARGS:-}" ]]; then
 fi
 
 exec "$ENGINE" run --interactive --tty --rm \
-  --name "opencode-ts-${PROJECT_NAME}-$$" \
+  --name "opencode-$$" \
   --init \
   --detach-keys "ctrl-],ctrl-q" \
   ${ENGINE_ARGS[@]+"${ENGINE_ARGS[@]}"} \
