@@ -1,5 +1,8 @@
 # opencode-typescript
 
+[![Build](https://github.com/app/opencode-typescript/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/app/opencode-typescript/actions/workflows/build.yml)
+[![Last build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fapp%2Fopencode-typescript%2Fstatus%2Fstatus.json)](https://github.com/app/opencode-typescript/actions/workflows/build.yml)
+
 A container image that runs [OpenCode](https://opencode.ai) for TypeScript
 development. Nothing to install: one run command from your project directory
 and the agent is working — the TUI opens inside the container.
@@ -28,18 +31,11 @@ docker run -it --rm --user "$(id -u):$(id -g)" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-`--userns=keep-id:uid=1000,gid=1000` (Podman) runs the agent as the image's
-built-in user, uid 1000, mapped onto your host user: files it creates are uid
-1000 in the container and yours on the host. Docker has no user mapping, so
-its command uses `--user "$(id -u):$(id -g)"` instead. `--detach-keys` moves
-the engine's default `ctrl-p ctrl-q` detach sequence elsewhere, so the TUI's
-`ctrl-p` command palette works.
-State (sessions, connected accounts) is kept in the per-user
-volume `opencode-state-<user>`, so users of a shared machine do not share
-it. The TUI opens on OpenCode's free built-in model — start typing, no key
-needed. For other models, connect OpenRouter with the TUI's `/connect`
-command and pick a model in the model picker. See
-[Installation](docs/installation.md).
+State (sessions, connected accounts) is kept in the per-user volume
+`opencode-state-<user>`, so users of a shared machine do not share it. The
+TUI opens on OpenCode's free built-in model — start typing, no key needed.
+For other models, connect OpenRouter with the TUI's `/connect` command and
+pick a model in the model picker. See [Installation](docs/installation.md).
 
 ## The image
 
