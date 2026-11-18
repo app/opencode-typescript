@@ -21,7 +21,7 @@ From the project directory you want the agent to work in:
 Podman:
 
 ```bash
-podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
+podman run -it --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
@@ -31,7 +31,7 @@ podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
 Docker (the same, with `--user` instead of `--userns`):
 
 ```bash
-docker run -it --rm --user "$(id -u):$(id -g)" \
+docker run -it --rm --name "opencode-$$" --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
@@ -64,7 +64,7 @@ has the models. The same credential can be stored from the host without the
 TUI:
 
 ```bash
-podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
+podman run -it --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest opencode auth login openrouter
@@ -84,7 +84,7 @@ current folder, which is on the host), or copy
 `.gitignore`, and pass it on the run command:
 
 ```bash
-podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
+podman run -it --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \

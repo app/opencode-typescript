@@ -10,7 +10,7 @@ project directory:
 Podman:
 
 ```bash
-podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
+podman run -it --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
@@ -20,11 +20,21 @@ podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
 Docker (the same, with `--user` instead of `--userns`):
 
 ```bash
-docker run -it --rm --user "$(id -u):$(id -g)" \
+docker run -it --rm --name "opencode-$$" --user "$(id -u):$(id -g)" \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest
+```
+
+Both commands name the container explicitly, `opencode-<PID>` — `opencode-`
+plus the PID of the process that ran the command, so several containers can
+run side by side without a name collision. A running container is addressed
+below as `<name>`; to find its name (Docker: the same command with
+`docker ps`):
+
+```bash
+podman ps --format "table {{.ID}}\t{{.Status}}\t{{.Names}}\t{{.Ports}}" | grep opencode
 ```
 
 No server, no published port, and nothing installed on the host. The project
@@ -40,7 +50,7 @@ wraps exactly this.
 Server mode is an explicit command on top of the same image:
 
 ```bash
-podman run -d --name opencode --userns=keep-id:uid=1000,gid=1000 -p 4096:4096 \
+podman run -d --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 -p 4096:4096 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --env-file .env \
@@ -49,23 +59,26 @@ podman run -d --name opencode --userns=keep-id:uid=1000,gid=1000 -p 4096:4096 \
 ```
 
 The same works with Docker (with `--user "$(id -u):$(id -g)"` instead of
-`--userns`); drop `-d` and add `-it` for a foreground run. The [launcher](installation.md#the-launcher-optional)
-equivalent is `OPENCODE_TS_RUN_ARGS="-p 4096:4096" opencode-ts serve
+`--userns`); drop `-d` and add `-it` for a foreground run. To stop the
+server, stop the container: `podman stop <name>` (Docker: `docker stop
+<name>`); with `--rm` the container is removed once it stops. The
+[launcher](installation.md#the-launcher-optional) equivalent is
+`OPENCODE_TS_RUN_ARGS="-p 4096:4096" opencode-ts serve
 --hostname 0.0.0.0 --port 4096`.
 
 To open the [web UI](api.md#web-ui), create a pairing link from inside the
-running container:
+running container (`<name>` — its name, from the `ps` command above):
 
 Podman:
 
 ```bash
-podman exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
+podman exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
 ```
 
 Docker:
 
 ```bash
-docker exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
+docker exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
 ```
 
 and open the printed link in a browser. The [HTTP API](api.md#http-api-agents)
@@ -143,7 +156,7 @@ The entrypoint execs the command you pass, so any other opencode command or a
 shell works — append it to the run command:
 
 ```bash
-podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
+podman run -it --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   --detach-keys="ctrl-],ctrl-q" \
   ghcr.io/app/opencode-typescript:latest \
@@ -158,13 +171,13 @@ replace the command with `bash`.
 Podman:
 
 ```bash
-podman logs -f opencode
+podman logs -f <name>
 ```
 
 Docker:
 
 ```bash
-docker logs -f opencode
+docker logs -f <name>
 ```
 
 In server mode, the generated server password (when `OPENCODE_PASSWORD` is

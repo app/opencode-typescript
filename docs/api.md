@@ -8,7 +8,7 @@ container; nothing is installed on the host.
 The image default. From the project directory:
 
 ```bash
-podman run -it --rm --userns=keep-id:uid=1000,gid=1000 \
+podman run -it --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 \
   -v "$PWD:/home/opencode/projects/$(basename "$PWD")" \
   -v opencode-state-$(id -un):/home/opencode/.local \
   --detach-keys="ctrl-],ctrl-q" \
@@ -23,18 +23,20 @@ the container and needs no password.
 ## Web UI
 
 The web UI is served by the [server mode](usage.md#start-the-server-web-ui-http-api).
-To sign in, create a pairing link from inside the running container:
+To sign in, create a pairing link from inside the running container
+(`<name>` — its name; find it with the `ps` command in
+[Usage](usage.md#open-the-tui-default)):
 
 Podman:
 
 ```bash
-podman exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
+podman exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
 ```
 
 Docker:
 
 ```bash
-docker exec -it --detach-keys="ctrl-],ctrl-q" opencode opencode pair
+docker exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
 ```
 
 Open the printed link in a browser (the port must be published,

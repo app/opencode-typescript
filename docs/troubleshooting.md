@@ -32,12 +32,14 @@ Common errors and fixes.
 - Server mode is an explicit command: the container must be started with
   `opencode serve --hostname 0.0.0.0 --port 4096` (the k8s manifest and the
   CI smoke test do this; the image default is the TUI).
-- Check the container is running and the port is published:
-  `podman ps` / `docker ps`, and the `-p 4096:4096` flag.
+- Check the container is running and the port is published — the `Names`
+  column is the `<name>` used in the commands below:
+  `podman ps --format "table {{.ID}}\t{{.Status}}\t{{.Names}}\t{{.Ports}}" | grep opencode`
+  (Docker: the same with `docker ps`), and the `-p 4096:4096` flag.
 - The server binds `0.0.0.0:4096` inside the container; without the port
   publication the host cannot reach it.
 - Give it a few seconds on first start, then check the log for the
-  `server listening on http://0.0.0.0:4096` line: `podman logs opencode`.
+  `server listening on http://0.0.0.0:4096` line: `podman logs <name>`.
 - In Kubernetes, the pod must be `Ready` (TCP probe) and the Service must
   select `app: opencode`; `kubectl port-forward svc/opencode 4096:4096`.
 
@@ -45,7 +47,7 @@ Common errors and fixes.
 
 - The username is always `opencode`; only the password changes.
 - When `OPENCODE_PASSWORD` is empty, the server generated a password and
-  printed it to the container log on start (`podman logs opencode`,
+  printed it to the container log on start (`podman logs <name>`,
   `kubectl logs deploy/opencode`).
 - Pairing links for the web UI do not use the password at all; the browser
   session is created through the one-time link.
