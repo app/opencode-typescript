@@ -37,6 +37,16 @@ TUI opens on OpenCode's free built-in model — start typing, no key needed.
 For other models, connect OpenRouter with the TUI's `/connect` command and
 pick a model in the model picker. See [Installation](docs/installation.md).
 
+To pass secrets, add `--env-file` with a file of `NAME=value` lines (or
+`-e NAME=value` for one). Most common variables (the full list:
+[Passing secrets](docs/usage.md#passing-secrets)):
+
+| Variable             | Purpose                               |
+| -------------------- | ------------------------------------- |
+| `OPENROUTER_API_KEY` | API key for OpenRouter models         |
+| `GH_TOKEN`           | GitHub token for git and the `gh` CLI |
+| `OPENCODE_PASSWORD`  | server password (server mode only)    |
+
 ## The image
 
 - **Rolling latest.** GitHub Actions builds and publishes the image to GHCR on
@@ -62,17 +72,6 @@ Server mode is an explicit command
 (`opencode serve --hostname 0.0.0.0 --port 4096`); see
 [Usage](docs/usage.md) and [Access](docs/api.md). Running OpenCode in
 Kubernetes: [Kubernetes](docs/kubernetes.md).
-
-## Security and secrets
-
-OpenCode runs unprivileged (uid 1000 mapped onto your host user on Podman,
-your host UID on Docker) with a restricted sudo policy, so treat the
-container as the security boundary. Secrets live only on the host or on the
-`opencode-state-<user>` volume: the runtime env file, the calling environment, a
-Kubernetes Secret, or a connected account. Nothing secret is baked into the
-image; it ships a documented `.env.example` template, and a built-in agent
-skill offers to copy it into the working folder when runtime variables are
-missing. See [Security notes](docs/security.md).
 
 ## Documentation
 
