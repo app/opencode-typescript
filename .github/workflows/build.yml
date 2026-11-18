@@ -10,6 +10,9 @@ on:
 permissions:
   contents: write
   packages: write
+  # GITHUB_TOKEN needs this for the update-pins job to open its pull request
+  # with peter-evans/create-pull-request.
+  pull-requests: write
 
 env:
   REGISTRY: ghcr.io
