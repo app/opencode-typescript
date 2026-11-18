@@ -21,6 +21,11 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # The status job reports what was built, so the resolved versions are
+    # exposed at job level.
+    outputs:
+      opencode: ${{ steps.versions.outputs.opencode }}
+      node: ${{ steps.versions.outputs.node }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -139,3 +144,49 @@ jobs:
             The build workflow resolved newer upstream versions than the pins
             recorded in `versions.json`. Merging this pull request rebuilds and
             republishes the image with the new versions.
+
+  status:
+    # Publishes the last-build badge JSON. It runs even when the build fails,
+    # so the badge turns red instead of showing a stale green.
+    needs: [build, update-pins]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Compose the status badge
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          UPDATE_PINS_RESULT: ${{ needs.update-pins.result }}
+          OPENCODE: ${{ needs.build.outputs.opencode }}
+          NODE: ${{ needs.build.outputs.node }}
+        run: |
+          set -euo pipefail
+          now="$(date -u '+%Y-%m-%d %H:%M') UTC"
+          if [[ "$BUILD_RESULT" == "success" && "$UPDATE_PINS_RESULT" == "success" ]]; then
+            color=green
+            message="${now} · oc ${OPENCODE:-?} / node ${NODE:-?}"
+          else
+            color=red
+            message="${now} · failed"
+          fi
+          jq -n \
+            --arg message "$message" \
+            --arg color "$color" \
+            '{schemaVersion: 1, label: "build", message: $message, color: $color, cacheSeconds: 300}' \
+            > status.json
+          cat status.json
+
+      - name: Publish the status branch
+        # The branch holds a single commit with status.json; the checkout
+        # credentials cover the push, so no token is written into the URL.
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan status
+          git read-tree --empty
+          git add status.json
+          git commit --allow-empty -q -m "chore: update the build status badge"
+          git push --force origin status
