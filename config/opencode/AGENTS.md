@@ -14,6 +14,28 @@
 - Keep changes consistent with the structure, naming and patterns of the
   surrounding code.
 
+## Working process
+
+All project work is plan-driven:
+
+- The plan lives in the temporary file `./tmp/PLAN.md`. For large or complex
+  projects the plan may be kept under git control as `docs/PLAN.md` instead.
+- When a plan is fully complete, archive it before the next plan takes its
+  place: copy it to `./tmp/plan-archive-<YYYYMMDD>.md` (the archiving date;
+  append a distinguishing suffix if several plans are archived on the same
+  day). Archived plans are reference material and are never edited.
+- If no plan exists, always propose starting by writing one.
+- No mutating actions of any kind may start until the user explicitly confirms
+  that the plan is ready and work may begin. Until then only read-only actions
+  are allowed: reading and gathering data, locally and on the internet. Local
+  experiments that require running project code or downloading large files
+  from the network are forbidden too.
+- The plan always ends with a mandatory `## Done / Next steps` section listing
+  the completed points and what to do next. Update it in every session,
+  regularly, before returning to wait for the user's prompt.
+- At the start of a session, always check whether a plan exists. If it does,
+  ask the user for permission before continuing work on it.
+
 ## Documentation
 
 Detailed guides are baked next to this file. Read the one that matches the
