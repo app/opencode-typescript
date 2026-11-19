@@ -24,6 +24,8 @@ All project work is plan-driven:
   place: copy it to `./tmp/plan-archive-<YYYYMMDD>.md` (the archiving date;
   append a distinguishing suffix if several plans are archived on the same
   day). Archived plans are reference material and are never edited.
+- The plan is written in the language the user writes in (the conversation
+  language); this file and the guides stay in English.
 - If no plan exists, always propose starting by writing one.
 - No mutating actions of any kind may start until the user explicitly confirms
   that the plan is ready and work may begin. Until then only read-only actions
