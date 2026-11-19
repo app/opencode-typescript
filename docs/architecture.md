@@ -86,8 +86,8 @@ on demand (`workflow_dispatch`):
    `oc-<opencode>-node<node>` and `<YYYYMMDD>`. The layer cache lives in a
    separate `opencode-typescript-buildcache` GHCR repository.
 3. A smoke test asserts that the image default stays the TUI, starts the
-   server explicitly, waits for `GET /api/info` with Basic auth, and checks
-   the reported version.
+   server explicitly, waits for `GET /api/info` with Basic auth, checks
+   the reported version, and verifies that the agent guides are baked in.
 4. The `update-pins` job re-resolves the versions and, when they differ from
    `versions.json` in the repository, opens a pull request updating the pins
    (`peter-evans/create-pull-request`). Merging it rebuilds and republishes

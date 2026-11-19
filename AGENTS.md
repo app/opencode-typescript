@@ -141,5 +141,5 @@ before committing; it pads tables so they stay aligned in a terminal.
 The push to `main` triggers the `Build` workflow. Watch the run (GitHub
 Actions or `gh run list` / `gh run watch`), and on failure read the logs
 (`gh run view <id> --log`) before changing anything. The smoke test checks
-that the published image starts the server and answers `GET /api/info` with
-Basic auth.
+that the published image starts the server, answers `GET /api/info` with
+Basic auth, and carries the agent guides.

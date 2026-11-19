@@ -101,6 +101,11 @@ jobs:
             echo "Server version mismatch: expected ${{ steps.versions.outputs.opencode }}, got $VERSION." >&2
             exit 1
           fi
+          # The agent guides must be baked with the configuration.
+          for guide in workspace typescript troubleshooting; do
+            docker exec opencode-smoke test -f "/home/opencode/.config/opencode/docs/${guide}.md"
+          done
+          echo "agent guides baked"
 
   update-pins:
     needs: build
