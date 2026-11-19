@@ -14,6 +14,18 @@
 - Keep changes consistent with the structure, naming and patterns of the
   surrounding code.
 
+## Documentation
+
+Detailed guides are baked next to this file. Read the one that matches the
+task before non-trivial work:
+
+- `/home/opencode/.config/opencode/docs/workspace.md` — where the project,
+  the state volume and the tools live.
+- `/home/opencode/.config/opencode/docs/typescript.md` — Node.js and mise,
+  package managers, TypeScript tooling, Python and native builds.
+- `/home/opencode/.config/opencode/docs/troubleshooting.md` — in-container
+  failures and fixes.
+
 ## Tooling
 
 The image ships a development toolchain. Prefer these tools over ad-hoc
@@ -22,15 +34,15 @@ alternatives.
 - Search: `rg` (ripgrep), `fd`, `ast-grep` (also available as `sg`) for
   structural search and rewriting.
 - JSON/YAML: `jq`, `yq`.
-- Node.js: managed by `mise`. The Node LTS installed at image build time is
-  the default. `.nvmrc`, `.node-version`, `.tool-versions` and `mise.toml`
-  are honored automatically, and missing versions are installed on demand.
-- Python: `python3` with `uv` for scripts (`uv venv`, `uv pip install`,
-  `uvx`). Do not install packages into the system interpreter with `pip`.
+- Node.js: managed by `mise`; the Node LTS installed at image build time is
+  the default. Versions and workflows:
+  `/home/opencode/.config/opencode/docs/typescript.md`.
+- Python: `python3` with `uv` for scripts. Do not install packages into the
+  system interpreter with `pip`.
 - Package managers: `npm`, `pnpm` and `yarn` (Corepack reads `packageManager`
   from `package.json`).
 - TypeScript: `tsc`, the TypeScript language server and `prettier` are
-  installed globally for Node; format changed Markdown with
+  installed globally for the pinned Node; format changed Markdown with
   `prettier --write --prose-wrap preserve --embedded-language-formatting off`.
 - Forge: `gh` for GitHub, `glab` for GitLab (issues, MRs, pipelines,
   releases); Forgejo through the REST API.

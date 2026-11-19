@@ -22,6 +22,10 @@ Repository layout, the image, and the GitHub Actions pipeline.
 │   └── opencode/                     # copied to /home/opencode/.config/opencode
 │       ├── opencode.jsonc            # permissions, LSP (no model or provider pinned)
 │       ├── AGENTS.md                 # agent instructions (public, no personal data)
+│       ├── docs/                     # agent guides baked with the configuration
+│       │   ├── workspace.md
+│       │   ├── typescript.md
+│       │   └── troubleshooting.md
 │       └── skills/env-setup/SKILL.md # offers the env template when runtime variables are missing
 ├── k8s/
 │   ├── deployment.yaml
@@ -50,8 +54,9 @@ The image bakes configuration, not secrets:
 
 - `config/opencode/` → `/home/opencode/.config/opencode/` (autonomous
   permissions, the TypeScript LSP, the `env-setup` skill, the `AGENTS.md`
-  policy; no model or provider is pinned — the session runs on OpenCode's
-  free built-in models until the user connects OpenRouter);
+  policy and the agent guides in `docs/`; no model or provider is pinned —
+  the session runs on OpenCode's free built-in models until the user connects
+  OpenRouter);
 - `config/gitconfig` → `/home/opencode/.gitconfig` (generic identity);
 - `.env.example` → `/home/opencode/.env.example` (the runtime env template);
 - `config/bin/entrypoint.sh` → `/usr/local/bin/entrypoint.sh` (git identity

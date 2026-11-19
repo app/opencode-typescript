@@ -33,13 +33,15 @@ Common errors and fixes.
   `opencode serve --hostname 0.0.0.0 --port 4096` (the k8s manifest and the
   CI smoke test do this; the image default is the TUI).
 - Check the container is running and the port is published — the `Names`
-  column is the `<name>` used in the commands below:
+  column is the container name (used in the commands below, see
+  [Usage](usage.md#logs)):
   `podman ps --format "table {{.ID}}\t{{.Status}}\t{{.Names}}\t{{.Ports}}" | grep opencode`
   (Docker: the same with `docker ps`), and the `-p 4096:4096` flag.
 - The server binds `0.0.0.0:4096` inside the container; without the port
   publication the host cannot reach it.
 - Give it a few seconds on first start, then check the log for the
-  `server listening on http://0.0.0.0:4096` line: `podman logs <name>`.
+  `server listening on http://0.0.0.0:4096` line: find the container name in
+  [Usage](usage.md#logs), then `podman logs -f <name>`.
 - In Kubernetes, the pod must be `Ready` (TCP probe) and the Service must
   select `app: opencode`; `kubectl port-forward svc/opencode 4096:4096`.
 
@@ -47,7 +49,8 @@ Common errors and fixes.
 
 - The username is always `opencode`; only the password changes.
 - When `OPENCODE_PASSWORD` is empty, the server generated a password and
-  printed it to the container log on start (`podman logs <name>`,
+  printed it to the container log on start (find the name in
+  [Usage](usage.md#logs), then `podman logs -f <name>`; in Kubernetes:
   `kubectl logs deploy/opencode`).
 - Pairing links for the web UI do not use the password at all; the browser
   session is created through the one-time link.
@@ -82,14 +85,13 @@ Common errors and fixes.
   [Usage](usage.md) includes it). A state volume created by an older image
   needs a one-time removal first (Usage, Mounts).
 
-## Node version problems in the project
+## In-container problems
 
-- A version requested by `.nvmrc`/`mise.toml` that is not installed is
-  downloaded on demand; on non-x86_64 or for older versions this uses the
-  slow `unofficial-builds.nodejs.org` mirror (mise is configured with long
-  timeouts and retries for that).
-- `mise ls` shows installed versions; the pinned LTS is recorded in the image
-  labels (`docker image inspect`).
+The agent inside the container follows its own guide, baked at
+`/home/opencode/.config/opencode/docs/` (source:
+[config/opencode/docs/](../config/opencode/docs/)): Node version downloads,
+global tooling and other in-container issues. Ask the agent, or read the guide
+in the repository.
 
 ## The image looks stale
 

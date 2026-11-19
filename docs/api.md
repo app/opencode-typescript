@@ -23,20 +23,21 @@ the container and needs no password.
 ## Web UI
 
 The web UI is served by the [server mode](usage.md#start-the-server-web-ui-http-api).
-To sign in, create a pairing link from inside the running container
-(`<name>` — its name; find it with the `ps` command in
-[Usage](usage.md#open-the-tui-default)):
+To sign in, create a pairing link from inside the running container (its
+name is in [Usage](usage.md#logs)):
 
 Podman:
 
 ```bash
-podman exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
+name="$(podman ps --format '{{.Names}}' | grep '^opencode-' | head -n1)"
+podman exec -it --detach-keys="ctrl-],ctrl-q" "$name" opencode pair
 ```
 
 Docker:
 
 ```bash
-docker exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
+name="$(docker ps --format '{{.Names}}' | grep '^opencode-' | head -n1)"
+docker exec -it --detach-keys="ctrl-],ctrl-q" "$name" opencode pair
 ```
 
 Open the printed link in a browser (the port must be published,
@@ -53,13 +54,15 @@ username is always `opencode`, and only the password can be changed.
 
 ## HTTP API (agents)
 
-Start the server explicitly (see
-[Usage](usage.md#start-the-server-web-ui-http-api)), then an external agent
-creates a session and sends prompts through the REST API:
+Start the server explicitly with a password (see
+[Usage](usage.md#start-the-server-web-ui-http-api)), export the same password in
+the shell, and use the REST API (`curl` and `jq` are assumed):
+
+<!-- canonical: api-flow -->
 
 ```bash
 BASE=http://localhost:4096
-AUTH="opencode:a-long-secret"
+AUTH="opencode:$OPENCODE_PASSWORD"
 
 # Server info (also a good health check)
 curl -fsS -u "$AUTH" "$BASE/api/info"
@@ -75,6 +78,8 @@ curl -fsS -u "$AUTH" -X POST "$BASE/api/session/$SESSION/prompt" \
 # Subscribe to server events
 curl -fsS -u "$AUTH" -N "$BASE/api/event"
 ```
+
+<!-- /canonical: api-flow -->
 
 - The OpenAPI 3.1 document of a running server is served at
   `http://localhost:4096/openapi.json`; the published reference lives at

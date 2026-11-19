@@ -29,9 +29,8 @@ docker run -it --rm --name "opencode-$$" --user "$(id -u):$(id -g)" \
 
 Both commands name the container explicitly, `opencode-<PID>` — `opencode-`
 plus the PID of the process that ran the command, so several containers can
-run side by side without a name collision. A running container is addressed
-below as `<name>`; to find its name (Docker: the same command with
-`docker ps`):
+run side by side without a name collision. A running container is found the
+same way (Docker: the same command with `docker ps`):
 
 ```bash
 podman ps --format "table {{.ID}}\t{{.Status}}\t{{.Names}}\t{{.Ports}}" | grep opencode
@@ -61,24 +60,27 @@ podman run -d --rm --name "opencode-$$" --userns=keep-id:uid=1000,gid=1000 -p 40
 The same works with Docker (with `--user "$(id -u):$(id -g)"` instead of
 `--userns`); drop `-d` and add `-it` for a foreground run. To stop the
 server, stop the container: `podman stop <name>` (Docker: `docker stop
-<name>`); with `--rm` the container is removed once it stops. The
+<name>`), where `<name>` is the name from the `ps` command above; with
+`--rm` the container is removed once it stops. The
 [launcher](installation.md#the-launcher-optional) equivalent is
 `OPENCODE_TS_RUN_ARGS="-p 4096:4096" opencode-ts serve
 --hostname 0.0.0.0 --port 4096`.
 
 To open the [web UI](api.md#web-ui), create a pairing link from inside the
-running container (`<name>` — its name, from the `ps` command above):
+running container:
 
 Podman:
 
 ```bash
-podman exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
+name="$(podman ps --format '{{.Names}}' | grep '^opencode-' | head -n1)"
+podman exec -it --detach-keys="ctrl-],ctrl-q" "$name" opencode pair
 ```
 
 Docker:
 
 ```bash
-docker exec -it --detach-keys="ctrl-],ctrl-q" <name> opencode pair
+name="$(docker ps --format '{{.Names}}' | grep '^opencode-' | head -n1)"
+docker exec -it --detach-keys="ctrl-],ctrl-q" "$name" opencode pair
 ```
 
 and open the printed link in a browser. The [HTTP API](api.md#http-api-agents)
@@ -171,13 +173,15 @@ replace the command with `bash`.
 Podman:
 
 ```bash
-podman logs -f <name>
+name="$(podman ps --format '{{.Names}}' | grep '^opencode-' | head -n1)"
+podman logs -f "$name"
 ```
 
 Docker:
 
 ```bash
-docker logs -f <name>
+name="$(docker ps --format '{{.Names}}' | grep '^opencode-' | head -n1)"
+docker logs -f "$name"
 ```
 
 In server mode, the generated server password (when `OPENCODE_PASSWORD` is
