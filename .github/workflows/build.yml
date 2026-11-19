@@ -30,6 +30,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Check documentation examples
+        run: bash scripts/check-docs.sh
+
       - name: Resolve current versions
         id: versions
         run: |

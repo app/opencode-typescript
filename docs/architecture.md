@@ -13,6 +13,7 @@ Repository layout, the image, and the GitHub Actions pipeline.
 ├── versions.json                     # pinned toolchain versions (updated by the bot PR)
 ├── .github/workflows/build.yml       # build, publish, smoke test, pin updates
 ├── scripts/
+│   ├── check-docs.sh                 # checks the consumer doc examples and the canonical API block
 │   └── resolve-versions.sh           # resolves the current OpenCode and Node LTS
 ├── config/
 │   ├── bin/entrypoint.sh             # git identity, forge credentials, cd into the project, exec "$@"
@@ -76,8 +77,10 @@ See [Usage](usage.md) and [Access](api.md).
 `.github/workflows/build.yml` runs on push to `main`, on a daily schedule, and
 on demand (`workflow_dispatch`):
 
-1. `scripts/resolve-versions.sh` resolves the latest stable OpenCode tag from
-   the upstream GHCR image and the current Node LTS from
+1. The job runs `scripts/check-docs.sh`, which checks the consumer doc
+   examples and keeps the canonical API block in `AGENTS.md` and `docs/api.md`
+   identical, then `scripts/resolve-versions.sh` resolves the latest stable
+   OpenCode tag from the upstream GHCR image and the current Node LTS from
    `nodejs.org/dist/index.json`.
 2. Buildx builds `linux/amd64` and pushes to GHCR with the tags `latest`,
    `oc-<opencode>-node<node>` and `<YYYYMMDD>`. The layer cache lives in a
