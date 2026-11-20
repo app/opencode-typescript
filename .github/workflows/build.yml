@@ -39,6 +39,11 @@ jobs:
           bash scripts/resolve-versions.sh >> "$GITHUB_OUTPUT"
           echo "date=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
 
+      - name: Set up QEMU
+        # The arm64 half of the build (and its smoke test) runs emulated on
+        # the amd64 runner.
+        uses: docker/setup-qemu-action@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -54,7 +59,9 @@ jobs:
         with:
           context: .
           file: Containerfile
-          platforms: linux/amd64
+          # A single multi-arch image: the engine picks the variant, so an
+          # Apple Silicon Mac pulls linux/arm64 and runs it natively.
+          platforms: linux/amd64,linux/arm64
           build-args: |
             OPENCODE_VERSION=${{ steps.versions.outputs.opencode }}
             NODE_VERSION=${{ steps.versions.outputs.node }}
@@ -66,46 +73,15 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-buildcache:build
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-buildcache:build,mode=max
 
-      - name: Smoke test
+      - name: Smoke test (linux/amd64 and linux/arm64)
         env:
           SMOKE_PASSWORD: smoke-test-password
+          OPENCODE_VERSION: ${{ steps.versions.outputs.opencode }}
         run: |
           set -euo pipefail
           IMAGE="${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${IMAGE_NAME}:oc-${{ steps.versions.outputs.opencode }}-node${{ steps.versions.outputs.node }}"
-          # buildx pushes the image but does not load it into the local
-          # daemon; pull it first.
-          docker pull "$IMAGE"
-          # Guard: the image must default to the interactive TUI, not the server.
-          IMAGE_CMD="$(docker inspect --format '{{join .Config.Cmd " "}}' "$IMAGE")"
-          if [[ "$IMAGE_CMD" != "opencode" ]]; then
-            echo "Unexpected image default CMD: $IMAGE_CMD" >&2
-            exit 1
-          fi
-          # The server mode is started explicitly.
-          docker run -d --name opencode-smoke -e OPENCODE_PASSWORD="$SMOKE_PASSWORD" "$IMAGE" opencode serve --hostname 0.0.0.0 --port 4096
-          trap 'docker rm -f opencode-smoke >/dev/null' EXIT
-          up=""
-          for _ in $(seq 1 30); do
-            if docker exec opencode-smoke curl -fsS -u "opencode:$SMOKE_PASSWORD" http://localhost:4096/api/info >/dev/null 2>&1; then
-              up="yes"
-              break
-            fi
-            sleep 2
-          done
-          [[ "$up" == "yes" ]] || { echo "The server did not come up." >&2; exit 1; }
-          INFO="$(docker exec opencode-smoke curl -fsS -u "opencode:$SMOKE_PASSWORD" http://localhost:4096/api/info)"
-          echo "$INFO"
-          # Best effort: verify the server reports the version we built.
-          VERSION="$(jq -r '.version // empty' <<<"$INFO")"
-          if [[ -n "$VERSION" && "$VERSION" != "${{ steps.versions.outputs.opencode }}" ]]; then
-            echo "Server version mismatch: expected ${{ steps.versions.outputs.opencode }}, got $VERSION." >&2
-            exit 1
-          fi
-          # The agent guides must be baked with the configuration.
-          for guide in workspace typescript troubleshooting; do
-            docker exec opencode-smoke test -f "/home/opencode/.config/opencode/docs/${guide}.md"
-          done
-          echo "agent guides baked"
+          bash scripts/smoke-test.sh amd64 "$IMAGE"
+          bash scripts/smoke-test.sh arm64 "$IMAGE"
 
   update-pins:
     needs: build
