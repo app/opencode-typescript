@@ -57,6 +57,9 @@ To pass secrets, add `--env-file` with a file of `NAME=value` lines (or
 - **TypeScript toolchain.** Current Node LTS via mise, TypeScript and the
   TypeScript language server, Prettier, pnpm/yarn, git and the usual agent
   tooling — see [Toolchain](docs/toolchain.md).
+- **Multi-arch.** Built for `linux/amd64` and `linux/arm64`: on an Apple
+  Silicon Mac the engine pulls the arm64 variant and the image runs
+  natively.
 - **Non-root.** The agent never runs as root: on Podman it is the image's
   uid 1000 mapped onto your host user, on Docker your host UID, with a
   restricted sudo policy.

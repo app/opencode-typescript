@@ -10,6 +10,9 @@ so no OpenCode client is needed on the host.
   For Podman, enable subuid mappings so the
   `--userns=keep-id:uid=1000,gid=1000` flag works (`subuid`/`subgid` entries
   in `/etc/subuid` and `/etc/subgid`).
+- An x86_64 or arm64 host: the image is multi-arch (`linux/amd64`,
+  `linux/arm64`), so it runs natively on x86_64 machines and Apple Silicon
+  Macs — no emulation flag needed.
 - Nothing else: OpenCode's free built-in models work without any account or
   key. An [OpenRouter](https://openrouter.ai/) API key is optional — see
   [More models](#more-models-optional).

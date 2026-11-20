@@ -82,12 +82,16 @@ on demand (`workflow_dispatch`):
    identical, then `scripts/resolve-versions.sh` resolves the latest stable
    OpenCode tag from the upstream GHCR image and the current Node LTS from
    `nodejs.org/dist/index.json`.
-2. Buildx builds `linux/amd64` and pushes to GHCR with the tags `latest`,
-   `oc-<opencode>-node<node>` and `<YYYYMMDD>`. The layer cache lives in a
-   separate `opencode-typescript-buildcache` GHCR repository.
+2. Buildx builds `linux/amd64` and `linux/arm64` — the arm64 half emulated
+   with QEMU on the amd64 runner — and pushes a single multi-arch image to
+   GHCR with the tags `latest`, `oc-<opencode>-node<node>` and `<YYYYMMDD>`;
+   the engine picks the variant, so an Apple Silicon Mac runs the arm64
+   image natively. The layer cache lives in a separate
+   `opencode-typescript-buildcache` GHCR repository.
 3. A smoke test asserts that the image default stays the TUI, starts the
    server explicitly, waits for `GET /api/info` with Basic auth, checks
-   the reported version, and verifies that the agent guides are baked in.
+   the reported version, and verifies that the agent guides are baked in —
+   on both architectures, the arm64 run under QEMU.
 4. The `update-pins` job re-resolves the versions and, when they differ from
    `versions.json` in the repository, opens a pull request updating the pins
    (`peter-evans/create-pull-request`). Merging it rebuilds and republishes
