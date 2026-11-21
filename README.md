@@ -31,9 +31,8 @@ docker run -it --rm --name "opencode-$$" --user "$(id -u):$(id -g)" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
-State (sessions, connected accounts) is kept in the per-user volume
-`opencode-state-<user>`, so users of a shared machine do not share it. The
-TUI opens on OpenCode's free built-in model — start typing, no key needed.
+The TUI opens on OpenCode's free built-in model — start typing, no key
+needed.
 For other models, connect OpenRouter with the TUI's `/connect` command and
 pick a model in the model picker. See [Installation](docs/installation.md).
 
