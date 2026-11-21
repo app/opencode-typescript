@@ -44,6 +44,17 @@ project directly. If you have a `.env` file (see
 to the command. The optional [launcher](installation.md#the-launcher-optional)
 wraps exactly this.
 
+## Terminal
+
+The TUI is a full-screen app, so copying between the TUI and the host
+clipboard goes through your terminal. Standard terminals (GNOME Terminal on
+Ubuntu, Terminal.app on macOS) work, but copying is limited. For full
+two-way clipboard access, install:
+
+- **kitty** on Linux — the clipboard works out of the box.
+- **iTerm2** on macOS — enable _Settings → General → Selection →
+  "Applications in terminal may access clipboard"_.
+
 ## Start the server (web UI, HTTP API)
 
 Server mode is an explicit command on top of the same image:

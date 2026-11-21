@@ -26,6 +26,9 @@ Common errors and fixes.
   the key never reaches the TUI. Every command in this repository carries
   the flag; alternatively set `detachKeys` in your engine's client config
   file.
+- Copying between the TUI and the host clipboard is limited in standard
+  terminals: use kitty (Linux) or iTerm2 (macOS), see
+  [Terminal](usage.md#terminal).
 
 ## The server does not respond (server mode)
 

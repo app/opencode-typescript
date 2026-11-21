@@ -31,6 +31,9 @@ docker run -it --rm --name "opencode-$$" --user "$(id -u):$(id -g)" \
   ghcr.io/app/opencode-typescript:latest
 ```
 
+For two-way clipboard support between the TUI and the host, install kitty
+(Linux) or iTerm2 (macOS) — see [Usage](docs/usage.md#terminal).
+
 The TUI opens on OpenCode's free built-in model — start typing, no key
 needed.
 For other models, connect OpenRouter with the TUI's `/connect` command and
